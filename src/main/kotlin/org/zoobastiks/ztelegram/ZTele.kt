@@ -1,6 +1,7 @@
 package org.zoobastiks.ztelegram
 
 import org.bukkit.Bukkit
+import java.io.File
 import org.zoobastiks.ztelegram.chat.ChatManager
 import org.zoobastiks.ztelegram.checkin.CheckinManager
 import org.zoobastiks.ztelegram.checkin.CheckinCommand
@@ -89,6 +90,10 @@ class ZTele : JavaPlugin() {
         if (configUpdated || gameConfigUpdated) {
             logger.info("Configuration files have been updated with new features!")
         }
+
+		if (!File(dataFolder, "translation.json").exists()) {
+  			saveResource("translation.json", false)
+		}
 
         // КРИТИЧЕСКИ ВАЖНО: Принудительно перезагружаем конфиг из файла
         // чтобы Bukkit API получил актуальные данные после ConfigUpdater
