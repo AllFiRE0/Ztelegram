@@ -41,8 +41,6 @@ class CheckinManager(private val plugin: ZTele) {
         }
     }
 
-    fun close() = connection?.close()
-
     private fun getPlayerData(playerName: String): PlayerData? {
         val stmt = connection?.prepareStatement("SELECT * FROM checkins WHERE player_name = ?")
         stmt?.setString(1, playerName.lowercase())
