@@ -187,6 +187,8 @@ renderer:
 checkin:
   # 🔄 Включить систему чек-ина
   enabled: true
+  # Требовать авторизацию
+  require_registration: false
   # ⏰ Кулдаун между отметками (в часах)
   cooldown_hours: 6
   # 🎁 Настройки награды
