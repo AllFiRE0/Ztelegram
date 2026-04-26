@@ -147,4 +147,34 @@ class CheckinManager(private val plugin: ZTele) {
             if (hours > 0) "${hours}ч ${minutes}м" else "${minutes}м"
         }
     }
+
+    fun mergeAccounts(playerName: String, telegramId: Long) {
+        val tgKey = "tg_$telegramId"
+        val tgData = getPlayerData(tgKey) ?: return
+        val playerData = getPlayerData(playerName)
+        
+        val newPoints = (playerData?.points ?: 0) + tgData.points
+        val newTotalEarned = (playerData?.totalEarned ?: 0) + tgData.totalEarned
+        val newStreak = maxOf(playerData?.streak ?: 0, tgData.streak)
+        val lastCheckin = listOfNotNull(playerData?.lastCheckin, tgData.lastCheckin).maxOrNull()
+        
+        connection?.prepareStatement("""
+            INSERT OR REPLACE INTO checkins (player_name, points, total_earned, streak, last_checkin)
+            VALUES (?, ?, ?, ?, ?)
+        """)?.use { stmt ->
+            stmt.setString(1, playerName.lowercase())
+            stmt.setInt(2, newPoints)
+            stmt.setInt(3, newTotalEarned)
+            stmt.setInt(4, newStreak)
+            stmt.setString(5, lastCheckin?.toString())
+            stmt.executeUpdate()
+        }
+        
+        connection?.prepareStatement("DELETE FROM checkins WHERE player_name = ?")?.use { stmt ->
+            stmt.setString(1, tgKey)
+            stmt.executeUpdate()
+        }
+    }
+
+    fun close() = connection?.close()
 }
