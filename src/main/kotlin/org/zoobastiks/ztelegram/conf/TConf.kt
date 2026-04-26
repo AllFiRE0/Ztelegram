@@ -514,6 +514,7 @@ class TConf(private val plugin: ZTele) {
     var checkinRewardMin: Int = 10
     var checkinRewardMax: Int = 100
     var checkinRewardFixed: Int = 50
+    var checkinRequireRegistration: Boolean = true
     var checkinCurrencyName: String = "⚡ очков актива"
     var checkinStreakEnabled: Boolean = true
     var checkinStreakMaxBonus: Int = 50
