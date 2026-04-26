@@ -1,6 +1,7 @@
 package org.zoobastiks.ztelegram.mgr
 
 import org.bukkit.Bukkit
+import org.zoobastiks.ztelegram.ZTele
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import org.zoobastiks.ztelegram.ZTele
@@ -421,6 +422,11 @@ class PMgr(private val plugin: ZTele) {
                 addToWhitelist(telegramId)
 
                 savePlayers()
+
+                try {
+                    ZTele.checkinManager.mergeAccounts(name, telegramId.toLong())
+                } catch (e: Exception) { }
+                
                 return true
             }
         }
@@ -438,6 +444,11 @@ class PMgr(private val plugin: ZTele) {
         addToWhitelist(telegramId)
 
         savePlayers()
+
+        try {
+            ZTele.checkinManager.mergeAccounts(name, telegramId.toLong())
+        } catch (e: Exception) { }
+        
         return true
     }
 
