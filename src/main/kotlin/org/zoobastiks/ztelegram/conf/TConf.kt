@@ -1212,6 +1212,7 @@ class TConf(private val plugin: ZTele) {
         checkinMessageSuccess = conf.getString("checkin.messages.success", "") ?: ""
         checkinMessageCooldown = conf.getString("checkin.messages.cooldown", "") ?: ""
         checkinMessageInfo = conf.getString("checkin.messages.info", "") ?: ""
+        checkinRequireRegistration = conf.getBoolean("checkin.require_registration", true)
         
         sendCommandEnabled = conf.getBoolean("commands.send.enabled", true)
         sendCommandPermission = conf.getString("commands.send.permission", "ztelegram.send") ?: "ztelegram.send"
