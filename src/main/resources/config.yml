@@ -299,66 +299,18 @@ staff-list:
   button-info: "ℹ️ Информация"
   # Список игроков
   players:
-    - rank: "Владелец сервера"
-      telegram: "Zoobastiks"
-      telegram_id: 693794119
-      name: "Владислав"
-      nickname: "Zoobastiks"
-      actions:
-        - type: "write"
-          enabled: true
-        - type: "ticket"
-          enabled: true
-        - type: "info"
-          enabled: true
-    - rank: "Владелец сервера"
-      telegram: "yajobs"
-      telegram_id: 987654321
-      name: "Даниель"
-      nickname: "DenielGars"
-      actions:
-        - type: "write"
-          enabled: true
-        - type: "ticket"
-          enabled: true
-        - type: "info"
-          enabled: true
     - rank: "Администрация сервера"
-      telegram: "AlestarAlex"
-      telegram_id: 5073146708
-      name: "Александра"
-      nickname: "AlestarAlex"
-      actions:
-        - type: "write"
-          enabled: true
-        - type: "ticket"
-          enabled: true
-        - type: "info"
-          enabled: true
-    - rank: "Администрация сервера"
-      telegram: "il_rayevsky"
-      telegram_id: 5890406638
-      name: "Илья"
-      nickname: "Rayevsky"
-      actions:
-        - type: "write"
-          enabled: true
-        - type: "ticket"
-          enabled: true
-        - type: "info"
-          enabled: true
-    - rank: "Администрация сервера"
-      telegram: "gkk86"
-      telegram_id: 5577784170
+      telegram: "gk4386"
+      telegram_id: 557773484170
       name: "Неизвестно"
-      nickname: "gkk86"
+      nickname: "gkk4386"
       actions:
         - type: "write"
-          enabled: true
+          enabled: false
         - type: "ticket"
-          enabled: true
+          enabled: false
         - type: "info"
-          enabled: true
+          enabled: false
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 💸 НАСТРОЙКИ ПЕРЕВОДОВ ДЕНЕГ
@@ -416,13 +368,13 @@ plugin:
   prefix: "〔Телеграм〕"
 
   # 🔗 Ссылка на Telegram канал
-  telegram-link: "https://t.me/ReZoobastik/286719"
+  telegram-link: "https://ссылка.com"
 
   # 💬 Сообщение при команде /telegram в игре
   telegram-command-message: '<gradient:#FF0000:#A6EB0F>〔Телеграм〕</gradient> <hover:show_text:"Кликни, чтобы открыть канал"><gradient:#A6EB0F:#00FF00>Ссылка ↙↙↙↙↙</gradient></hover>'
 
   # 🖱️ Текст кликабельной ссылки
-  telegram-click-text: "t.me/Zoobastiks « Нажми на неё"
+  telegram-click-text: "t.me/AllFiRE « Нажми на неё"
 
   # 💭 Текст при наведении на ссылку
   telegram-hover-text: "Перейти по ссылке на канал сервера"
@@ -535,12 +487,12 @@ chat:
   # 📝 Белый список пользователей
   whitelist:
     enabled: true
-    no-registration-message: '❌ Вы не можете здесь написать.\n\n✅ Для регистрации вашего ника\n🛜 Перейдите в тему https://t.me/ReZoobastik/309520\n🌍 Введите там свой ник без пробелов и слэшей.\n\n❤️‍🔥 За регистрацию никнейма выдается награда.\n💯 Она начисляется автоматически на ваш никнейм в игре.'
+    no-registration-message: '❌ Вы не можете здесь написать.\n\n✅ Для регистрации вашего ника\n🛜 Перейдите в тему https://Телеграм/чат\n🌍 Введите там свой ник без пробелов и слэшей.\n\n❤️‍🔥 За регистрацию никнейма выдается награда.\n💯 Она начисляется автоматически на ваш никнейм в игре.'
 
   # 🚫 Черный список пользователей
   blacklist:
     enabled: true
-    blocked-message: '❌ Администратор вас заблокировал в чате.\n😈 Сообщение не дошло в игровой чат.\n\n🤡 Если вы считаете что вели себя адекватно.\n✅ Напишите в лс »»» t.me/Zoobastiks\n🚷 Напишите оправданные своих действий.'
+    blocked-message: '❌ Администратор вас заблокировал в чате.\n😈 Сообщение не дошло в игровой чат.\n\n🤡 Если вы считаете что вели себя адекватно.\n✅ Напишите в лс »»» t.me/AllFiREs\n🚷 Напишите оправданные своих действий.'
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 🏠 НАСТРОЙКИ ОСНОВНОГО КАНАЛА
@@ -631,8 +583,8 @@ register-channel:
 
   # 📞 Сообщения регистрации
   invalid-username: '❌ Неверный никнейм: %player%\n📝 Разрешены только английские буквы, цифры и символ _\n📝 Никнейм должен быть от 3 - 17 символов'
-  already-registered: '❌ Никнейм %player% уже зарегистрирован\n❤️ Айпи сервера » Zoobastiks.20tps.name'
-  user-already-registered: '❌ Вы уже зарегистрированы с никнеймом » `%player%`\n❤️ Айпи сервера » Zoobastiks.20tps.name'
+  already-registered: '❌ Никнейм %player% уже зарегистрирован\n❤️ Айпи сервера » Адрес-Сервера'
+  user-already-registered: '❌ Вы уже зарегистрированы с никнеймом » `%player%`\n❤️ Айпи сервера » Адрес-Сервера'
   player-offline: '❌ Игрок %player% не в сети\n❌ Зайдите на сервер под этим никнеймом\n✅ И повторите попытку еще раз.'
   success: '✅ Ваш ник `%player%` зарегистрирован.\n🎁 Награды:\n♻️ 500 монет\n♻️ 20 уровней опыта\n♻️ Зачарованный железный меч\n\n💌 Меч выдается, только если вы\n💌 в это время были на сервере.\n\n🖤 Награды получены.\n\n😍 Спасибо что играете здесь.'
 
@@ -652,7 +604,7 @@ register-channel:
     - "broadcast &b%player% &eПолучил наградау в 500 ⛃"
     - "broadcast &b%player% &eПолучил наградау в 20 уровней опыта"
     - "broadcast &b%player% &eПолучил наградау Железный меч"
-    - "broadcast &2Ссылка &4» &fhttps://t.me/ReZoobastik"
+    - "broadcast &2Ссылка &4» &fhttps://t.me/AllFiRE"
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # ⚙️ КОМАНДЫ ПЛАГИНА
@@ -703,7 +655,7 @@ commands:
       ❌ **Команда недоступна.**
       🚷 Вы не являетесь администратором.
 
-      ❤️ IP сервера: `Zoobastiks.20tps.name`
+      ❤️ IP сервера: `Адрес-Сервера`
 
       ✏️ Просмотр команд  » `/help`
 
@@ -712,7 +664,7 @@ commands:
       ❌ **Команда недоступна в этом канале.**
       📍 Используйте соответствующий канал для этой команды.
 
-      ❤️ IP сервера: `Zoobastiks.20tps.name`
+      ❤️ IP сервера: `Адрес-Сервера`
 
       ✏️ Просмотр команд  » `/help`
 
@@ -721,7 +673,7 @@ commands:
       ❌ **Отмена регистрации недоступна.**
       🚷 Вы можете отменить только **свою** регистрацию.
 
-      ❤️ IP сервера: `Zoobastiks.20tps.name`
+      ❤️ IP сервера: `Адрес-Сервера`
 
       ✏️ Просмотр команд  » `/help`
 
@@ -731,9 +683,9 @@ commands:
   online:
     enabled: true
     # Основной ответ команды
-    response: "🌍 **Онлайн:** %online%/%max%\n👫 **Список игроков:**\n %players%\n\n🖥 **IP сервера:** `Zoobastiks.20tps.name`"
+    response: "🌍 **Онлайн:** %online%/%max%\n👫 **Список игроков:**\n %players%\n\n🖥 **IP сервера:** `Адрес-Сервера`"
     # Сообщение когда сервер пустой
-    no-players: "🏜️ **Сервер пустой**\n🙈 На сервере никого нет\n🖥 **IP сервера:** `Zoobastiks.20tps.name`"
+    no-players: "🏜️ **Сервер пустой**\n🙈 На сервере никого нет\n🖥 **IP сервера:** `Адрес-Сервера`"
     # Заголовок списка игроков (%count% - количество)
     header: "🎮 **Игроки онлайн** (%count%/%max%)"
     # Формат для каждого игрока (%player% - ник)
@@ -1597,8 +1549,8 @@ commands:
     info-links-text: |
       🔗 **ССЫЛКИ**
       
-      📱 Telegram: <a href="https://t.me/ReZoobastik">Открыть канал</a>
-      🖥️ IP сервера: <code>Zoobastiks.20tps.name</code>
+      📱 Telegram: <a href="https://t.me/AllFiRE">Открыть канал</a>
+      🖥️ IP сервера: <code>Адрес-Сервера</code>
     # Текст информации о сервере (%user% - имя пользователя)
     info-server-text: |
       🖥️ **ИНФОРМАЦИЯ О СЕРВЕРЕ**
@@ -1612,7 +1564,7 @@ commands:
       💬 Дискорд: <a href="https://discord.com/invite/g462MJEm3H">Присоединиться</a>
       
       👤 **Связь с владельцем:**
-      <a href="https://t.me/Zoobastiks">@Zoobastiks</a> или <a href="https://t.me/yajobs">@yajobs</a>
+      <a href="https://t.me/Ссылкаs">@ID-TG</a>
     # Текст меню игрока (%user% - имя пользователя, %player% - ник игрока)
     player-text: |
       👤 **ИНФОРМАЦИЯ ОБ ИГРОКЕ**
