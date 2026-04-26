@@ -1542,7 +1542,13 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 if (!conf.checkinEnabled) return
                 val playerName = mgr.getPlayerByTelegramId(userId.toString())
                 if (playerName == null) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ Вы не зарегистрированы!", conf.commandsAutoDeleteSeconds)
+                    // Разрешаем чекин без регистрации - используем Telegram ID
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+                        val result = ZTele.checkinManager.checkin("tg_$userId")
+                        Bukkit.getScheduler().runTask(plugin, Runnable {
+                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), result.message, conf.commandsAutoDeleteSeconds)
+                        })
+                    })
                     return
                 }
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
