@@ -4,7 +4,6 @@ import org.bukkit.Bukkit
 import org.zoobastiks.ztelegram.ZTele
 import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
-import org.zoobastiks.ztelegram.ZTele
 import org.zoobastiks.ztelegram.conf.TConf
 import java.io.File
 import java.time.LocalDateTime
