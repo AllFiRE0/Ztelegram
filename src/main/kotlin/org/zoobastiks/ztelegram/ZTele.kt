@@ -94,6 +94,15 @@ class ZTele : JavaPlugin() {
 		if (!File(dataFolder, "translation.json").exists()) {
   			saveResource("translation.json", false)
 		}
+		if (!File(dataFolder, "players.yml").exists()) {
+            saveResource("players.yml", false)
+        }
+        if (!File(dataFolder, "stats.yml").exists()) {
+            saveResource("stats.yml", false)
+        }
+        if (!File(dataFolder, "placeholders.yml").exists()) {
+            saveResource("placeholders.yml", false)
+        }
 
         // КРИТИЧЕСКИ ВАЖНО: Принудительно перезагружаем конфиг из файла
         // чтобы Bukkit API получил актуальные данные после ConfigUpdater
