@@ -502,6 +502,42 @@ class TConf(private val plugin: ZTele) {
     // Commands auto-delete timeout
     var commandsAutoDeleteSeconds: Int = 30
 
+    // Multichat
+    var gameChatsEnabled: Boolean = true
+    var gameChatsMinecraftToTelegram: Boolean = true
+    var gameChatsTelegramToMinecraft: Boolean = true
+    
+    // Check-in system
+    var checkinEnabled: Boolean = true
+    var checkinCooldownHours: Int = 6
+    var checkinRewardType: String = "random"
+    var checkinRewardMin: Int = 10
+    var checkinRewardMax: Int = 100
+    var checkinRewardFixed: Int = 50
+    var checkinCurrencyName: String = "⚡ очков актива"
+    var checkinStreakEnabled: Boolean = true
+    var checkinStreakMaxBonus: Int = 50
+    var checkinCommandInGame: String = "checkin"
+    var checkinCommandInGameAlias: String = "ch"
+    var checkinCommandTelegram: String = "checkin"
+    var checkinMenuButtonText: String = "🎯 Отметиться"
+    var checkinMenuText: String = ""
+    var checkinMessageSuccess: String = ""
+    var checkinMessageCooldown: String = ""
+    var checkinMessageInfo: String = ""
+    
+    // Command send
+    var sendCommandEnabled: Boolean = true
+    var sendCommandPermission: String = "ztelegram.send"
+    var sendCommandSuccess: String = "✅ Сообщение отправлено в чат '%chat%'"
+    var sendCommandChatNotFound: String = "❌ Чат '%chat%' не найден"
+    var sendCommandInvalidFormat: String = "❌ Неподдерживаемый формат: '%format%'"
+    var sendCommandUsage: String = "§cИспользование: /tgsend <format> <chat_name> <message>"
+    
+    // Rendering
+    var rendererEnabled: Boolean = true
+    var rendererTranslationsFile: String = "translation.json"
+
     // Error messages
     var errorsNoAdminPermission: String = "❌ **Команда недоступна.**\n🚷 Вы не являетесь администратором.\n\n❤️ IP сервера: `Zoobastiks.20tps.name`\n\n✏️ Просмотр команд  » `/help`"
     var errorsCommandNotAllowed: String = "❌ **Команда недоступна в этом канале.**\n📍 Используйте соответствующий канал для этой команды.\n\n❤️ IP сервера: `Zoobastiks.20tps.name`\n\n✏️ Просмотр команд  » `/help`"
