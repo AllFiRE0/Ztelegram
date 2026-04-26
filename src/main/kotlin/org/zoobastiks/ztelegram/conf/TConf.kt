@@ -1196,6 +1196,33 @@ class TConf(private val plugin: ZTele) {
         // Commands auto-delete timeout
         commandsAutoDeleteSeconds = conf.getInt("commands.auto-delete-seconds", 30)
 
+        // New Settings from AllFiRE build
+        gameChatsEnabled = conf.getBoolean("game_chats.enabled", true)
+        gameChatsMinecraftToTelegram = conf.getBoolean("game_chats.minecraft_to_telegram", true)
+        gameChatsTelegramToMinecraft = conf.getBoolean("game_chats.telegram_to_minecraft", true)
+        
+        checkinEnabled = conf.getBoolean("checkin.enabled", true)
+        checkinCooldownHours = conf.getInt("checkin.cooldown_hours", 6)
+        checkinRewardType = conf.getString("checkin.reward.type", "random") ?: "random"
+        checkinRewardMin = conf.getInt("checkin.reward.min", 10)
+        checkinRewardMax = conf.getInt("checkin.reward.max", 100)
+        checkinRewardFixed = conf.getInt("checkin.reward.fixed", 50)
+        checkinStreakEnabled = conf.getBoolean("checkin.streak.enabled", true)
+        checkinStreakMaxBonus = conf.getInt("checkin.streak.max_bonus", 50)
+        checkinMessageSuccess = conf.getString("checkin.messages.success", "") ?: ""
+        checkinMessageCooldown = conf.getString("checkin.messages.cooldown", "") ?: ""
+        checkinMessageInfo = conf.getString("checkin.messages.info", "") ?: ""
+        
+        sendCommandEnabled = conf.getBoolean("commands.send.enabled", true)
+        sendCommandPermission = conf.getString("commands.send.permission", "ztelegram.send") ?: "ztelegram.send"
+        sendCommandSuccess = conf.getString("commands.send.success", "✅ Сообщение отправлено в чат '%chat%'") ?: "✅ Сообщение отправлено"
+        sendCommandChatNotFound = conf.getString("commands.send.chat_not_found", "❌ Чат '%chat%' не найден") ?: "❌ Чат не найден"
+        sendCommandInvalidFormat = conf.getString("commands.send.invalid_format", "❌ Неподдерживаемый формат: '%format%'") ?: "❌ Неверный формат"
+        sendCommandUsage = conf.getString("commands.send.usage", "§cИспользование: /tgsend <format> <chat_name> <message>") ?: "§cНеверное использование"
+        
+        rendererEnabled = conf.getBoolean("renderer.enabled", true)
+        rendererTranslationsFile = conf.getString("renderer.translations_file", "translation.json") ?: "translation.json"
+
         // Error messages
         errorsNoAdminPermission = conf.getString("commands.errors.no-admin-permission", errorsNoAdminPermission) ?: errorsNoAdminPermission
         errorsCommandNotAllowed = conf.getString("commands.errors.command-not-allowed", errorsCommandNotAllowed) ?: errorsCommandNotAllowed
