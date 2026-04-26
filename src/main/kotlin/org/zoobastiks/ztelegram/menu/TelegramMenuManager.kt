@@ -37,13 +37,14 @@ class TelegramMenuManager(
         }
         
         val playerName = ZTele.mgr.getPlayerByTelegramId(userId.toString())
-        if (playerName == null) {
+        if (playerName == null && ZTele.conf.checkinRequireRegistration) {
             bot.answerCallbackQuery(callbackQueryId, "❌ Вы не зарегистрированы", showAlert = true)
             return
         }
+        val checkinKey = playerName ?: "tg_$userId"
         
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-            val result = ZTele.checkinManager.checkin(playerName)
+            val result = ZTele.checkinManager.checkin(checkinKey)
             val message = result.message
             
             val keyboard = InlineKeyboardMarkup()
