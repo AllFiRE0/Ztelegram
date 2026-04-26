@@ -3,8 +3,8 @@ package org.zoobastiks.ztelegram
 import org.bukkit.Bukkit
 import org.zoobastiks.ztelegram.chat.ChatManager
 import org.zoobastiks.ztelegram.checkin.CheckinManager
-import org.bukkit.plugin.java.JavaPlugin
 import org.zoobastiks.ztelegram.commands.SendCommand
+import org.bukkit.plugin.java.JavaPlugin
 import org.zoobastiks.ztelegram.placeholders.TGBridgeExpansion
 import org.zoobastiks.ztelegram.bot.TBot
 import org.zoobastiks.ztelegram.cmd.TCmds
