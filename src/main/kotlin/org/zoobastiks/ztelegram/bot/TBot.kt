@@ -1482,6 +1482,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
         // Создаем карту команд и их псевдонимов
         val commandAliases = mapOf(
+            "checkin" to setOf("/checkin"),
             "admin" to setOf("/admin", "/админ"),
             "online" to setOf("/online", "/онлайн"),
             "tps" to setOf("/tps", "/тпс"),
@@ -1537,6 +1538,21 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
     private fun executeCommand(command: String, arguments: String, username: String, userId: Long, channelType: String) {
         when (command) {
+            "checkin" -> {
+                if (!conf.checkinEnabled) return
+                val playerName = mgr.getPlayerByTelegramId(userId.toString())
+                if (playerName == null) {
+                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ Вы не зарегистрированы!", conf.commandsAutoDeleteSeconds)
+                    return
+                }
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+                    val result = ZTele.checkinManager.checkin(playerName)
+                    Bukkit.getScheduler().runTask(plugin, Runnable {
+                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), result.message, conf.commandsAutoDeleteSeconds)
+                    })
+                })
+            }
+            
             "admin" -> {
                 // Проверяем права администратора
                 if (conf.debugEnabled) {
