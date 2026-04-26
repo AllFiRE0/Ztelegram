@@ -34,3 +34,6 @@ jobs:
       with:
         name: ZTelegram
         path: build/libs/*.jar
+        
+    - name: Download textures
+      run: bash scripts/download-textures.sh
