@@ -3616,27 +3616,31 @@ $topList
     // Выполняет команды награды за регистрацию
     private fun executeRewardCommands(playerName: String) {
         if (conf.registerRewardCommands.isEmpty()) {
-            plugin.logger.warning("No reward commands configured for registration.")
+            if (conf.debugEnabled) plugin.logger.warning("No reward commands configured for registration.")
             return
         }
 
-        plugin.logger.info("Executing reward commands for player: $playerName")
-        plugin.logger.info("Commands to execute: ${conf.registerRewardCommands}")
+        if (conf.debugEnabled) {
+            plugin.logger.info("Executing reward commands for player: $playerName")
+            plugin.logger.info("Commands to execute: ${conf.registerRewardCommands}")
+        }
 
         val server = Bukkit.getServer()
         for (command in conf.registerRewardCommands) {
             try {
-                // Заменяем плейсхолдер игрока
                 val parsedCommand = processPlaceholders(command, mapOf("player" to playerName))
+            
+                if (conf.debugEnabled) {
+                    plugin.logger.info("Executing reward command: $parsedCommand")
+                }
 
-                plugin.logger.info("Executing reward command: $parsedCommand")
-
-                // Отправляем команду в основной поток для выполнения
                 Bukkit.getScheduler().runTask(plugin, Runnable {
                     try {
-                        // Выполняем команду от имени консоли
                         server.dispatchCommand(server.consoleSender, parsedCommand)
-                        plugin.logger.info("Successfully executed reward command: $parsedCommand")
+                    
+                        if (conf.debugEnabled) {
+                            plugin.logger.info("Successfully executed reward command: $parsedCommand")
+                        }
                     } catch (e: Exception) {
                         plugin.logger.severe("Error executing reward command in main thread: ${e.message}")
                         e.printStackTrace()
