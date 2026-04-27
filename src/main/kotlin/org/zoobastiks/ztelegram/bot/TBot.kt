@@ -5118,56 +5118,136 @@ $topList
         }
     }
     
+    // ========== МЕТОДЫ ДЛЯ КНИГ С КЛАВИАТУРОЙ ==========
     private fun createInlineKeyboardJson(
         prevCallbackData: String,
         nextCallbackData: String,
         isFirstPage: Boolean,
         isLastPage: Boolean
     ): String {
-        val json = org.json.JSONObject()
-        val keyboard = mutableListOf<MutableList<org.json.JSONObject>>()
-        
         if (isFirstPage) {
-            keyboard.add(mutableListOf(
-                org.json.JSONObject().apply {
-                    put("text", "Next ➡️")
-                    put("callback_data", nextCallbackData)
-                }
-            ))
+            return JSONObject().apply {
+                put("inline_keyboard", listOf(
+                    listOf(
+                        JSONObject().apply {
+                            put("text", " ➡️ ")
+                            put("callback_data", nextCallbackData)
+                        }
+                    )
+                ))
+            }.toString()
         } else if (isLastPage) {
-            keyboard.add(mutableListOf(
-                org.json.JSONObject().apply {
-                    put("text", "⬅️ Back")
-                    put("callback_data", prevCallbackData)
-                }
-            ))
-        } else {
-            keyboard.add(mutableListOf(
-                org.json.JSONObject().apply {
-                    put("text", "⬅️ Back")
-                    put("callback_data", prevCallbackData)
-                },
-                org.json.JSONObject().apply {
-                    put("text", "Next ➡️")
-                    put("callback_data", nextCallbackData)
-                }
-            ))
+            return JSONObject().apply {
+                put("inline_keyboard", listOf(
+                    listOf(
+                        JSONObject().apply {
+                            put("text", " ⬅️ ")
+                            put("callback_data", prevCallbackData)
+                        }
+                    )
+                ))
+            }.toString()
         }
-        
-        json.put("inline_keyboard", keyboard)
-        return json.toString()
+        return JSONObject().apply {
+            put("inline_keyboard", listOf(
+                listOf(
+                    JSONObject().apply {
+                        put("text", " ⬅️ ")
+                        put("callback_data", prevCallbackData)
+                    },
+                    JSONObject().apply {
+                        put("text", " ➡️ ")
+                        put("callback_data", nextCallbackData)
+                    }
+                )
+            ))
+        }.toString()
     }
     
     fun sendImageWithKeyboard(chatId: Long, imageIndex: Int, imageDirectory: java.io.File, caption: String?) {
         val imageFile = java.io.File(imageDirectory, "page$imageIndex.png")
+        val totalPages = imageDirectory.listFiles { file -> file.name.endsWith(".png") }?.size ?: 1
+        val isLastPage = imageIndex == totalPages
+        
         val imageBytes = imageFile.readBytes()
-        sendPhoto(chatId.toString(), imageBytes, caption)
+        val bookHash = imageDirectory.absolutePath.split(java.io.File.separator).last()
+        
+        var keyboardJson = ""
+        if (!isLastPage) {
+            keyboardJson = createInlineKeyboardJson("prev_$imageIndex-$bookHash", "next_$imageIndex-$bookHash", true, isLastPage)
+        }
+        
+        sendPhotoWithKeyboard(chatId.toString(), imageBytes, caption, keyboardJson)
     }
     
     fun editImageWithKeyboard(chatId: Long, messageId: Int, imageIndex: Int, imageDirectory: java.io.File, hash: String) {
         val imageFile = java.io.File(imageDirectory, "page$imageIndex.png")
+        val totalPages = imageDirectory.listFiles { file -> file.name.endsWith(".png") }?.size ?: 1
+        
+        val isFirstPage = imageIndex == 1
+        val isLastPage = imageIndex == totalPages
+        
         val imageBytes = imageFile.readBytes()
-        plugin.logger.info("Edit image with keyboard: chatId=$chatId, messageId=$messageId, imageIndex=$imageIndex")
+        val keyboardJson = createInlineKeyboardJson("prev_$imageIndex-$hash", "next_$imageIndex-$hash", isFirstPage, isLastPage)
+        
+        editMessagePhoto(chatId.toString(), messageId, imageBytes, keyboardJson)
     }
-
+    
+    private fun sendPhotoWithKeyboard(chatId: String, imageBytes: ByteArray, caption: String?, replyMarkupJson: String) {
+        if (!connectionState.get()) return
+        
+        try {
+            val (baseChatId, threadId) = parseChatId(chatId)
+            val sendPhoto = SendPhoto()
+            sendPhoto.chatId = baseChatId
+            sendPhoto.photo = InputFile(ByteArrayInputStream(imageBytes), "image.png")
+            sendPhoto.parseMode = "HTML"
+            
+            if (threadId != null) {
+                sendPhoto.messageThreadId = threadId
+            }
+            if (caption != null) {
+                sendPhoto.caption = caption
+            }
+            if (replyMarkupJson.isNotEmpty()) {
+                val replyMarkup = InlineKeyboardMarkup()
+                val jsonArray = JSONObject(replyMarkupJson).getJSONArray("inline_keyboard")
+                val keyboard = mutableListOf<List<InlineKeyboardButton>>()
+                
+                for (i in 0 until jsonArray.length()) {
+                    val rowArray = jsonArray.getJSONArray(i)
+                    val row = mutableListOf<InlineKeyboardButton>()
+                    for (j in 0 until rowArray.length()) {
+                        val buttonData = rowArray.getJSONObject(j)
+                        val button = InlineKeyboardButton()
+                        button.text = buttonData.getString("text")
+                        button.callbackData = buttonData.getString("callback_data")
+                        row.add(button)
+                    }
+                    keyboard.add(row)
+                }
+                replyMarkup.keyboard = keyboard
+                sendPhoto.replyMarkup = replyMarkup
+            }
+            
+            execute(sendPhoto)
+        } catch (e: Exception) {
+            handleConnectionError(e, "SEND_PHOTO_KEYBOARD")
+        }
+    }
+    
+    private fun editMessagePhoto(chatId: String, messageId: Int, imageBytes: ByteArray, replyMarkupJson: String) {
+        if (!connectionState.get()) return
+        
+        try {
+            val (baseChatId, _) = parseChatId(chatId)
+            
+            // Удаляем старое сообщение и отправляем новое с клавиатурой
+            deleteMessage(chatId, messageId)
+            sendPhotoWithKeyboard(chatId, imageBytes, null, replyMarkupJson)
+            
+        } catch (e: Exception) {
+            handleConnectionError(e, "EDIT_MESSAGE_PHOTO")
+        }
+    }
 }
