@@ -54,27 +54,44 @@ class TLis(private val plugin: ZTele) : Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onPlayerAdvancementDone(event: PlayerAdvancementDoneEvent) {
         try {
+            if (!ZTele.conf.advancementsEnabled) return
+        
             val display = event.advancement.display ?: return
             if (!display.doesAnnounceToChat()) return
 
-            val advancementName = PlainTextComponentSerializer.plainText().serialize(event.advancement.displayName())
             val frameType = display.frame().name.lowercase()
-            val message = when (frameType) {
-                "goal" -> "🏆 **Цель достигнута!** _${advancementName}_"
-                "challenge" -> "🔥 **Испытание завершено!** _${advancementName}_"
-                else -> "✨ **Новое достижение!** _${advancementName}_"
+        
+            // Проверяем, включён ли этот тип достижений
+            val (enabled, format) = when (frameType) {
+                "goal" -> ZTele.conf.advancementsGoalEnabled to ZTele.conf.advancementsGoalFormat
+                "challenge" -> ZTele.conf.advancementsChallengeEnabled to ZTele.conf.advancementsChallengeFormat
+                else -> ZTele.conf.advancementsTaskEnabled to ZTele.conf.advancementsTaskFormat
             }
+            if (!enabled) return
 
-            val item = display.icon()
-            val textColor = Color.decode(display.frame().color().asHexString())
+            val advancementName = PlainTextComponentSerializer.plainText().serialize(event.advancement.displayName())
+            val username = event.player.name
+            val description = PlainTextComponentSerializer.plainText().serialize(display.description())
+        
+            val message = format
+                .replace("%player%", username)
+                .replace("%advancement%", advancementName)
+                .replace("%description%", description)
 
-            plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
-                val renderer = AdvancementRenderer()
-                val imageBytes = renderer.renderAdvancement(advancementName, frameType, item, textColor)
-                plugin.server.scheduler.runTask(plugin, Runnable {
-                    ZTele.bot.sendPhoto(ZTele.conf.mainChannelId, imageBytes, message)
+            if (ZTele.conf.advancementsSendImage) {
+                val item = display.icon()
+                val textColor = Color.decode(display.frame().color().asHexString())
+
+                plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
+                    val renderer = AdvancementRenderer()
+                    val imageBytes = renderer.renderAdvancement(advancementName, frameType, item, textColor)
+                    plugin.server.scheduler.runTask(plugin, Runnable {
+                        ZTele.bot.sendPhoto(ZTele.conf.mainChannelId, imageBytes, message)
+                    })
                 })
-            })
+            } else {
+                ZTele.bot.sendMessageToMain(message)
+            }
         } catch (e: Exception) {
             plugin.logger.warning("Failed to render advancement: ${e.message}")
         }
