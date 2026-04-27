@@ -1,6 +1,7 @@
 package org.zoobastiks.ztelegram.bot
 
 import org.bukkit.Bukkit
+import org.json.JSONObject
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.zoobastiks.ztelegram.renderer.ItemRenderer
@@ -5053,70 +5054,63 @@ $topList
         deleteAfterSeconds: Int,
         configPath: String? = null
     ) {
-        if (conf.debugEnabled) {
-            plugin.logger.info("[sendAutoDeleteMessage] Input chatId: '$chatId', parsed baseChatId: '${chatId.substringBefore("_")}', threadId: ${if (chatId.contains("_")) chatId.substringAfter("_") else "null"}")
-        }
-
-        if (chatId.isEmpty() || text.isEmpty()) {
-            if (conf.debugEnabled) {
-                plugin.logger.info("[sendAutoDeleteMessage] Skipped: chatId.isEmpty=${chatId.isEmpty()}, text.isEmpty=${text.isEmpty()}")
-            }
-            return
-        }
-
-        // Проверяем состояние соединения
-        if (!connectionState.get()) {
-            if (conf.debugEnabled) {
-                plugin.logger.info("[sendAutoDeleteMessage] Skipped: connection is inactive")
-            }
-            logThrottled("SEND_AUTO_DELETE", "Cannot send message - connection is inactive", "WARNING")
-            return
-        }
-
-        if (conf.debugEnabled) {
-            plugin.logger.info("[sendAutoDeleteMessage] Sending to main chat ${chatId.substringBefore("_")} ${if (chatId.contains("_")) "(thread ${chatId.substringAfter("_")})" else "(no thread)"}")
-        }
-
-        try {
-            val (baseChatId, threadId) = parseChatId(chatId)
-            val sendMessage = SendMessage(baseChatId, convertToHtml(text))
-
-            if (threadId != null) {
-                sendMessage.messageThreadId = threadId
-            }
-            sendMessage.parseMode = "HTML"
-
-            val sentMessage = execute(sendMessage)
-
-            // Планируем удаление если нужно
-            if (deleteAfterSeconds > 0 && sentMessage != null) {
-                plugin.server.scheduler.runTaskLaterAsynchronously(plugin, Runnable {
-                    try {
-                        val deleteMessage = DeleteMessage(baseChatId, sentMessage.messageId)
-                        execute(deleteMessage)
-                    } catch (e: Exception) {
-                        // Игнорируем ошибки удаления (сообщение уже удалено или недоступно)
-                    }
-                }, (deleteAfterSeconds * 20L))
-            }
-
-        } catch (e: org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException) {
-            // Используем детальную диагностику
-            org.zoobastiks.ztelegram.utils.TelegramErrorDiagnostics.diagnoseError(
-                exception = e,
-                context = "SEND_AUTO_DELETE_MESSAGE",
-                message = text,
-                configPath = configPath
-            )
-        } catch (e: org.telegram.telegrambots.meta.exceptions.TelegramApiException) {
-            org.zoobastiks.ztelegram.utils.TelegramErrorDiagnostics.diagnoseError(
-                exception = e,
-                context = "SEND_AUTO_DELETE_MESSAGE",
-                message = text,
-                configPath = configPath
-            )
-        } catch (e: Exception) {
-            handleConnectionError(e, "SEND_AUTO_DELETE_UNEXPECTED")
-        }
+        // ... весь твой существующий код ...
     }
+
+    // 👇 ВСТАВЬ НОВЫЕ МЕТОДЫ СЮДА (ПЕРЕД ПОСЛЕДНЕЙ СКОБКОЙ) 👇
+
+    // ========== МЕТОДЫ ДЛЯ КНИГ С КЛАВИАТУРОЙ ==========
+    
+    private fun createInlineKeyboardJson(
+        prevCallbackData: String,
+        nextCallbackData: String,
+        isFirstPage: Boolean,
+        isLastPage: Boolean
+    ): String {
+        val json = org.json.JSONObject()
+        val keyboard = mutableListOf<MutableList<org.json.JSONObject>>()
+        
+        if (isFirstPage) {
+            keyboard.add(mutableListOf(
+                org.json.JSONObject().apply {
+                    put("text", "Next ➡️")
+                    put("callback_data", nextCallbackData)
+                }
+            ))
+        } else if (isLastPage) {
+            keyboard.add(mutableListOf(
+                org.json.JSONObject().apply {
+                    put("text", "⬅️ Back")
+                    put("callback_data", prevCallbackData)
+                }
+            ))
+        } else {
+            keyboard.add(mutableListOf(
+                org.json.JSONObject().apply {
+                    put("text", "⬅️ Back")
+                    put("callback_data", prevCallbackData)
+                },
+                org.json.JSONObject().apply {
+                    put("text", "Next ➡️")
+                    put("callback_data", nextCallbackData)
+                }
+            ))
+        }
+        
+        json.put("inline_keyboard", keyboard)
+        return json.toString()
+    }
+    
+    fun sendImageWithKeyboard(chatId: Long, imageIndex: Int, imageDirectory: java.io.File, caption: String?) {
+        val imageFile = java.io.File(imageDirectory, "page$imageIndex.png")
+        val imageBytes = imageFile.readBytes()
+        sendPhoto(chatId.toString(), imageBytes, caption)
+    }
+    
+    fun editImageWithKeyboard(chatId: Long, messageId: Int, imageIndex: Int, imageDirectory: java.io.File, hash: String) {
+        val imageFile = java.io.File(imageDirectory, "page$imageIndex.png")
+        val imageBytes = imageFile.readBytes()
+        plugin.logger.info("Edit image with keyboard: chatId=$chatId, messageId=$messageId, imageIndex=$imageIndex")
+    }
+
 }
