@@ -1385,7 +1385,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     if (item.type != Material.AIR) {
                         try {
                             val renderer = ItemRenderer()
-                            val imageBytes = renderer.renderItem(item)
+                            val imageBytes = renderer.renderItemToFile(item).first
                             val itemName = item.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
                             val caption = "$playerName: [$itemName]"
                             val currentChatId = currentChatIdContext.get() ?: conf.mainChannelId
@@ -3682,7 +3682,7 @@ $topList
                 if (item.type != Material.AIR) {
                     try {
                         val renderer = ItemRenderer()
-                        val imageBytes = renderer.renderItem(item)
+                        val imageBytes = renderer.renderItemToFile(item).first
                         val itemName = item.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
                         val caption = "$playerName: [$itemName]"
                         sendPhoto(conf.mainChannelId, imageBytes, caption)
