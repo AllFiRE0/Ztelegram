@@ -5277,4 +5277,16 @@ $topList
         }
         return false
     }
+
+        fun answerCallbackQuery(callbackQueryId: String) {
+        try {
+            val answer = AnswerCallbackQuery()
+            answer.callbackQueryId = callbackQueryId
+            execute(answer)
+        } catch (e: Exception) {
+            if (conf.debugEnabled) {
+                plugin.logger.warning("Error answering callback query: ${e.message}")
+            }
+        }
+    }
 }
