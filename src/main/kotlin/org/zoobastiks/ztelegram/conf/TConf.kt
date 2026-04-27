@@ -23,7 +23,8 @@ class TConf(private val plugin: ZTele) {
 
     // Debug settings
     var debugEnabled: Boolean = false
-   // Events - Advancements
+    // Events - Advancements
+    var validationEnabled: Boolean = true
     var advancementsEnabled: Boolean = true
     var advancementsSendImage: Boolean = true
     var advancementsTaskEnabled: Boolean = true
