@@ -2,6 +2,9 @@ package org.zoobastiks.ztelegram.lis
 
 import io.papermc.paper.event.player.AsyncChatEvent
 import org.bukkit.Material
+import org.bukkit.event.player.PlayerAdvancementDoneEvent
+import java.awt.Color
+import org.zoobastiks.ztelegram.renderer.AdvancementRenderer
 import org.zoobastiks.ztelegram.renderer.BookRenderer
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
@@ -110,6 +113,39 @@ class TLis(private val plugin: ZTele) : Listener {
         bot.sendPlayerDeathMessage(player.name, finalDeathMessage)
     }
 
+
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    fun onPlayerAdvancementDone(event: PlayerAdvancementDoneEvent) {
+        try {
+            val display = event.advancement.display ?: return
+            if (!display.doesAnnounceToChat()) return
+
+            val advancementName = PlainTextComponentSerializer.plainText().serialize(event.advancement.displayName())
+            val username = event.player.name
+            val frameType = display.frame().name.lowercase()
+            val description = PlainTextComponentSerializer.plainText().serialize(display.description())
+        
+            val message = when (frameType) {
+                "goal" -> "🏆 **Цель достигнута!** _${advancementName}_"
+                "challenge" -> "🔥 **Испытание завершено!** _${advancementName}_"
+                else -> "✨ **Новое достижение!** _${advancementName}_"
+            }
+    
+            val item = display.icon()
+            val textColor = Color(display.frame().color().asRGB())
+
+            plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
+                val renderer = AdvancementRenderer()
+                val imageBytes = renderer.renderAdvancement(advancementName, frameType, item, textColor)
+                plugin.server.scheduler.runTask(plugin, Runnable {
+                    ZTele.bot.sendPhoto(ZTele.conf.mainChannelId, imageBytes, message)
+                })
+            })
+        } catch (e: Exception) {
+            plugin.logger.warning("Failed to render advancement: ${e.message}")
+        }
+    }
+    
     /**
      * Обработчик нового API чата PaperMC
      */
