@@ -4365,6 +4365,42 @@ $topList
     }
 
     /**
+     * Отправляет фото в Telegram
+     */
+    fun sendPhoto(chatId: String, imageBytes: ByteArray, caption: String? = null) {
+        if (conf.debugEnabled) {
+            plugin.logger.info("[sendPhoto] chatId: $chatId, image size: ${imageBytes.size}, caption: $caption")
+        }
+        
+        if (!connectionState.get()) {
+            plugin.logger.warning("[sendPhoto] Cannot send photo - connection is inactive")
+            return
+        }
+        
+        try {
+            val (baseChatId, threadId) = parseChatId(chatId)
+            val sendPhoto = SendPhoto()
+            sendPhoto.chatId = baseChatId
+            sendPhoto.photo = InputFile(ByteArrayInputStream(imageBytes), "image.png")
+            sendPhoto.parseMode = "HTML"
+            
+            if (threadId != null) {
+                sendPhoto.messageThreadId = threadId
+            }
+            
+            if (caption != null) {
+                sendPhoto.caption = caption
+            }
+            
+            execute(sendPhoto)
+        } catch (e: TelegramApiException) {
+            handleConnectionError(e, "SEND_PHOTO")
+        } catch (e: Exception) {
+            handleConnectionError(e, "SEND_PHOTO_UNEXPECTED")
+        }
+    }
+
+    /**
      * Отправляет сообщение с Markdown форматированием и автоудалением
      */
     fun sendMarkdownMessage(chatId: String, message: String, deleteAfterSeconds: Int = 15) {
