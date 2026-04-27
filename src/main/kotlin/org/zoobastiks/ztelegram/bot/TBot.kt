@@ -3718,46 +3718,47 @@ $topList
     }
     
     fun sendPlayerChatMessage(playerName: String, chatMessage: String) {
-    if (!conf.mainChannelEnabled || !conf.chatPlayerChatEnabled || mgr.isPlayerHidden(playerName)) return
-    
-    // 🔥 НОВАЯ ЛОГИКА: используем game_chats если они включены
-    if (conf.gameChatsEnabled && conf.gameChatsMinecraftToTelegram) {
-        // Определяем чат по префиксу сообщения
-        val matchedChat = ZTele.chatManager.getChatByPrefix(chatMessage)
-        val targetChat = matchedChat ?: ZTele.chatManager.getDefaultChat()
-        
-        if (targetChat != null && targetChat.enabled) {
-            // Убираем префикс из сообщения
-            val processedMessage = if (targetChat.prefix.isNotEmpty() && chatMessage.startsWith(targetChat.prefix)) {
-                chatMessage.substring(targetChat.prefix.length).trim()
-            } else {
-                chatMessage
-            }
-            
-            // Форматируем сообщение по шаблону из game_chats
-            val formattedMessage = targetChat.telegramFormat
-                .replace("<username>", playerName)
-                .replace("<text>", processedMessage)
-            
-            // Отправляем в нужную тему/канал
-            val targetChatId = if (targetChat.topicId > 0) {
-                "${targetChat.chatId}_${targetChat.topicId}"
-            } else {
-                targetChat.chatId.toString()
-            }
-            
-            sendAutoDeleteMessage(targetChatId, formattedMessage, 0)
-            return
+        if (conf.debugEnabled) {
+            plugin.logger.info("=== sendPlayerChatMessage DEBUG ===")
+            plugin.logger.info("chatMessage: $chatMessage")
+            plugin.logger.info("gameChatsEnabled: ${conf.gameChatsEnabled}")
+            plugin.logger.info("gameChatsMinecraftToTelegram: ${conf.gameChatsMinecraftToTelegram}")
         }
-    }
-    
-    // 🔄 FALLBACK: старая система (если game_chats выключены или не настроены)
-    val context = PlaceholderEngine.createCustomContext(mapOf(
-        "player" to playerName,
-        "message" to chatMessage
-    ))
-    val message = PlaceholderEngine.process(conf.chatMinecraftToTelegramFormat, context)
-    sendAutoDeleteMessage(conf.mainChannelId, message, 0)
+
+        if (!conf.mainChannelEnabled || !conf.chatPlayerChatEnabled || mgr.isPlayerHidden(playerName)) return
+
+        if (conf.gameChatsEnabled && conf.gameChatsMinecraftToTelegram) {
+            val matchedChat = ZTele.chatManager.getChatByPrefix(chatMessage)
+            val targetChat = matchedChat ?: ZTele.chatManager.getDefaultChat()
+
+            if (targetChat != null && targetChat.enabled) {
+                val processedMessage = if (targetChat.prefix.isNotEmpty() && chatMessage.startsWith(targetChat.prefix)) {
+                    chatMessage.substring(targetChat.prefix.length).trim()
+                } else {
+                    chatMessage
+                }
+
+                val formattedMessage = targetChat.telegramFormat
+                    .replace("<username>", playerName)
+                    .replace("<text>", processedMessage)
+
+                val targetChatId = if (targetChat.topicId > 0) {
+                    "${targetChat.chatId}_${targetChat.topicId}"
+                } else {
+                    targetChat.chatId.toString()
+                }
+
+                sendAutoDeleteMessage(targetChatId, formattedMessage, 0)
+                return
+            }
+        }
+
+        val context = PlaceholderEngine.createCustomContext(mapOf(
+            "player" to playerName,
+            "message" to chatMessage
+        ))
+        val message = PlaceholderEngine.process(conf.chatMinecraftToTelegramFormat, context)
+        sendAutoDeleteMessage(conf.mainChannelId, message, 0)
     }
 
     fun sendPlayerCommandMessage(playerName: String, command: String) {
