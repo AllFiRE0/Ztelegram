@@ -37,6 +37,9 @@ class TConf(private val plugin: ZTele) {
     // Database settings
     var databaseEnabled: Boolean = true // Включить SQLite базу данных вместо YAML файлов
 
+    var checkinResetSuccess: String = "§aОчки чекина для игрока §e%player% §aсброшены!"
+    var checkinResetNotFound: String = "§cИгрок §e%player% §cне найден в базе чекинов!"
+
     // Command settings - unreg
     var enabledUnregCommand: Boolean = true
     var unregCommandUsage: String = "Использование: /unreg <никнейм> - отменить регистрацию"
@@ -1218,9 +1221,11 @@ class TConf(private val plugin: ZTele) {
         gameChatsEnabled = conf.getBoolean("game_chats.enabled", true)
         gameChatsMinecraftToTelegram = conf.getBoolean("game_chats.minecraft_to_telegram", true)
         gameChatsTelegramToMinecraft = conf.getBoolean("game_chats.telegram_to_minecraft", true)
-        
+
         checkinEnabled = conf.getBoolean("checkin.enabled", true)
         checkinCooldownHours = conf.getInt("checkin.cooldown_hours", 6)
+        checkinResetSuccess = conf.getString("checkin.reset.success", checkinResetSuccess) ?: checkinResetSuccess
+        checkinResetNotFound = conf.getString("checkin.reset.not_found", checkinResetNotFound) ?: checkinResetNotFound
         checkinRewardType = conf.getString("checkin.reward.type", "random") ?: "random"
         checkinRewardMin = conf.getInt("checkin.reward.min", 10)
         checkinRewardMax = conf.getInt("checkin.reward.max", 100)
