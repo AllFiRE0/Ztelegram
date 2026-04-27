@@ -100,20 +100,12 @@ class ItemRenderer {
     }
 
     private fun drawItemName(g: Graphics2D, item: ItemStack): String {
-        val displayName = PlainTextComponentSerializer.plainText().serialize(item.displayName())
-            .replace("[", "").replace("]", "")
-        val fullName = if (displayName.isNotEmpty()) displayName else ItemTranslator.translateItem(item.type.name)
+        val fullName = ItemTranslator.translateItem(item.type.name)
         val nameColor = determineNameColor(item)
         g.font = MinecraftFontLoader.getFont(16f)
         g.color = nameColor
         g.drawString(fullName, margin, imageScale + margin + 30)
         return fullName
-    }
-
-    // Оставляем для совместимости, но НЕ используем
-    private fun getItemName(item: ItemStack, displayName: String?): String {
-        val itemTypeName = item.type.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }
-        return if (!displayName.isNullOrEmpty()) "$displayName" else itemTypeName
     }
 
     private fun determineNameColor(item: ItemStack): Color {
