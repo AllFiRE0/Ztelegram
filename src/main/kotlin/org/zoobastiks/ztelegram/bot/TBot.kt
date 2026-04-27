@@ -1,17 +1,17 @@
 package org.zoobastiks.ztelegram.bot
 
+import org.bukkit.Bukkit
 import net.kyori.adventure.text.Component
+import org.bukkit.Material
 import org.zoobastiks.ztelegram.renderer.ItemRenderer
 import org.zoobastiks.ztelegram.renderer.InventoryRenderer
 import org.zoobastiks.ztelegram.renderer.EnderChestRenderer
-import org.bukkit.Material
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
 import org.telegram.telegrambots.meta.api.objects.InputFile
 import java.io.ByteArrayInputStream
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
-import org.bukkit.Bukkit
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
 import org.telegram.telegrambots.meta.TelegramBotsApi
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
@@ -3667,6 +3667,56 @@ $topList
         sendToMainChannel(message)
     }
 
+    fun handleRendering(playerName: String, text: String) {
+        val player = Bukkit.getPlayerExact(playerName)
+        if (player == null) {
+            sendAutoDeleteMessage(conf.mainChannelId, "❌ Игрок $playerName не в сети!", conf.commandsAutoDeleteSeconds)
+            return
+        }
+        
+        when {
+            text.equals("[item]", true) -> {
+                val item = player.inventory.itemInMainHand
+                if (item.type != Material.AIR) {
+                    try {
+                        val renderer = ItemRenderer()
+                        val imageBytes = renderer.renderItem(item)
+                        val itemName = item.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+                        val caption = "$playerName: [$itemName]"
+                        sendPhoto(conf.mainChannelId, imageBytes, caption)
+                    } catch (e: Exception) {
+                        plugin.logger.warning("Failed to render item: ${e.message}")
+                        sendAutoDeleteMessage(conf.mainChannelId, "❌ Не удалось отрендерить предмет", conf.commandsAutoDeleteSeconds)
+                    }
+                } else {
+                    sendAutoDeleteMessage(conf.mainChannelId, "❌ У вас нет предмета в руке!", conf.commandsAutoDeleteSeconds)
+                }
+            }
+            
+            text.equals("[inv]", true) -> {
+                try {
+                    val renderer = InventoryRenderer()
+                    val imageBytes = renderer.renderInventory(player.inventory)
+                    sendPhoto(conf.mainChannelId, imageBytes, "$playerName: Инвентарь")
+                } catch (e: Exception) {
+                    plugin.logger.warning("Failed to render inventory: ${e.message}")
+                    sendAutoDeleteMessage(conf.mainChannelId, "❌ Не удалось отрендерить инвентарь", conf.commandsAutoDeleteSeconds)
+                }
+            }
+            
+            text.equals("[ender]", true) -> {
+                try {
+                    val renderer = EnderChestRenderer()
+                    val imageBytes = renderer.renderEnderChest(player.enderChest)
+                    sendPhoto(conf.mainChannelId, imageBytes, "$playerName: Эндер-сундук")
+                } catch (e: Exception) {
+                    plugin.logger.warning("Failed to render ender chest: ${e.message}")
+                    sendAutoDeleteMessage(conf.mainChannelId, "❌ Не удалось отрендерить эндер-сундук", conf.commandsAutoDeleteSeconds)
+                }
+            }
+        }
+    }
+    
     fun sendPlayerChatMessage(playerName: String, chatMessage: String) {
     if (!conf.mainChannelEnabled || !conf.chatPlayerChatEnabled || mgr.isPlayerHidden(playerName)) return
     
