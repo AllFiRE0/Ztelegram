@@ -2,6 +2,9 @@ package org.zoobastiks.ztelegram.bot
 
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
+import org.telegram.telegrambots.meta.api.objects.InputFile
+import java.io.ByteArrayInputStream
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
@@ -1344,31 +1347,88 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
         // Рендеринг [item], [inv], [ender]
         if (text.equals("[item]", true) || text.equals("[inv]", true) || text.equals("[ender]", true)) {
-            val player = Bukkit.getPlayerExact(playerName)
-            if (player != null) {
-                when {
-                    text.equals("[item]", true) -> {
-                        val item = player.inventory.itemInMainHand
-                        if (item.type != Material.AIR) {
+            // Сначала пытаемся получить зарегистрированного игрока
+            var playerName = mgr.getPlayerByTelegramId(userId.toString())
+            var player: org.bukkit.entity.Player? = null
+            
+            // Если не зарегистрирован, пробуем найти игрока по имени из Telegram
+            if (playerName == null) {
+                // Используем username из Telegram как никнейм
+                playerName = username
+                player = Bukkit.getPlayerExact(playerName)
+                
+                if (player == null) {
+                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                        "❌ Игрок с ником \"$playerName\" не найден на сервере!\n💡 Зарегистрируйте аккаунт или зайдите на сервер под этим ником", 
+                        conf.commandsAutoDeleteSeconds)
+                    return
+                }
+            } else {
+                player = Bukkit.getPlayerExact(playerName)
+                if (player == null) {
+                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                        "❌ Игрок $playerName не в сети!", 
+                        conf.commandsAutoDeleteSeconds)
+                    return
+                }
+            }
+            
+            // Если дошли сюда - player не null
+            when {
+                text.equals("[item]", true) -> {
+                    val item = player!!.inventory.itemInMainHand
+                    if (item.type != Material.AIR) {
+                        try {
                             val renderer = ItemRenderer()
                             val imageBytes = renderer.renderItem(item)
-                            val itemName = item.type.name
-                            tgBot.sendPhotoToTelegram(imageBytes, "$playerName: $itemName")
+                            val itemName = item.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+                            val caption = "$playerName: [$itemName]"
+                            val currentChatId = currentChatIdContext.get() ?: conf.mainChannelId
+                            sendPhoto(currentChatId, imageBytes, caption)
+                        } catch (e: Exception) {
+                            plugin.logger.warning("Failed to render item: ${e.message}")
+                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                                "❌ Не удалось отрендерить предмет", 
+                                conf.commandsAutoDeleteSeconds)
                         }
-                    }
-                    text.equals("[inv]", true) -> {
-                        val renderer = InventoryRenderer()
-                        val imageBytes = renderer.renderInventory(player.inventory)
-                        tgBot.sendPhotoToTelegram(imageBytes, "$playerName: Инвентарь")
-                    }
-                    text.equals("[ender]", true) -> {
-                        val renderer = EnderChestRenderer()
-                        val imageBytes = renderer.renderEnderChest(player.enderChest)
-                        tgBot.sendPhotoToTelegram(imageBytes, "$playerName: Эндер-сундук")
+                    } else {
+                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                            "❌ У вас нет предмета в руке!", 
+                            conf.commandsAutoDeleteSeconds)
                     }
                 }
-                return
+                
+                text.equals("[inv]", true) -> {
+                    try {
+                        val renderer = InventoryRenderer()
+                        val imageBytes = renderer.renderInventory(player!!.inventory)
+                        val caption = "$playerName: Инвентарь"
+                        val currentChatId = currentChatIdContext.get() ?: conf.mainChannelId
+                        sendPhoto(currentChatId, imageBytes, caption)
+                    } catch (e: Exception) {
+                        plugin.logger.warning("Failed to render inventory: ${e.message}")
+                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                            "❌ Не удалось отрендерить инвентарь", 
+                            conf.commandsAutoDeleteSeconds)
+                    }
+                }
+                
+                text.equals("[ender]", true) -> {
+                    try {
+                        val renderer = EnderChestRenderer()
+                        val imageBytes = renderer.renderEnderChest(player!!.enderChest)
+                        val caption = "$playerName: Эндер-сундук"
+                        val currentChatId = currentChatIdContext.get() ?: conf.mainChannelId
+                        sendPhoto(currentChatId, imageBytes, caption)
+                    } catch (e: Exception) {
+                        plugin.logger.warning("Failed to render ender chest: ${e.message}")
+                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                            "❌ Не удалось отрендерить эндер-сундук", 
+                            conf.commandsAutoDeleteSeconds)
+                    }
+                }
             }
+            return
         }
 
         if (conf.mainChannelChatEnabled && conf.chatTelegramToMinecraftEnabled) {
