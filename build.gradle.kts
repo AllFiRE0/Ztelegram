@@ -17,7 +17,7 @@ version = "1.7"
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
-    maven("https://repo.brikster.dev/releases")
+    maven("https://repo.mrbrikster.dev/releases")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven("https://jitpack.io")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
