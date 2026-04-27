@@ -124,8 +124,34 @@ class TLis(private val plugin: ZTele) : Listener {
             }
         
             // РЕНДЕРИНГ КНИГИ
-            if (message.contains("book", ignoreCase = true)) {
-                return
+            // РЕНДЕРИНГ КНИГИ
+            if (message.equals("[item]", true)) {
+                val player = Bukkit.getPlayerExact(playerName)
+                if (player != null) {
+                    val item = player.inventory.itemInMainHand
+                    if (item.type == Material.WRITTEN_BOOK || item.type == Material.WRITABLE_BOOK) {
+                        plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
+                            try {
+                                val renderer = BookRenderer(plugin)
+                                val (bookDirectory, caption) = renderer.renderBookToFile(item)
+                                if (bookDirectory != null && bookDirectory.exists()) {
+                                    plugin.server.scheduler.runTask(plugin, Runnable {
+                                        val chatId = ZTele.conf.mainChannelId
+                                        bot.sendImageWithKeyboard(
+                                            chatId.toLong(),
+                                            imageIndex = 1,
+                                            imageDirectory = bookDirectory,
+                                            caption = caption
+                                        )
+                                    })
+                                }
+                            } catch (e: Exception) {
+                                plugin.logger.warning("Failed to render book: ${e.message}")
+                            }
+                        })
+                        return
+                    }
+                }
             }
 
             // Проверяем, не обрабатывали ли мы уже такое сообщение недавно
