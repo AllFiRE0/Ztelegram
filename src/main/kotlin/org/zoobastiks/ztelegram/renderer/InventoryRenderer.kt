@@ -13,6 +13,9 @@ class InventoryRenderer {
     private val padding = 4
     private val borderSize = 16
     private val bottomPadding = 8
+    
+    // Загружаем фон инвентаря
+    private val background = loadInventoryBackground(this.javaClass)
 
     fun renderInventory(inventory: Inventory): ByteArray {
         val columns = 9
@@ -22,9 +25,14 @@ class InventoryRenderer {
         val image = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB)
         val g = image.createGraphics()
 
-        // Фон
-        g.color = Color(139, 139, 139)
-        g.fillRect(0, 0, imageWidth, imageHeight)
+        // Рисуем фон (если есть текстура)
+        if (background != null) {
+            g.drawImage(background, 0, 0, imageWidth, imageHeight, null)
+        } else {
+            // Fallback: серый фон
+            g.color = Color(139, 139, 139)
+            g.fillRect(0, 0, imageWidth, imageHeight)
+        }
 
         for (row in 0 until rows) {
             for (col in 0 until columns) {
@@ -65,8 +73,11 @@ class InventoryRenderer {
         if (texture != null) {
             g.drawImage(texture, x, y, slotSize, slotSize, null)
         } else {
-            g.color = Color.GRAY
+            // Рисуем стилизованный квадрат вместо серого
+            g.color = Color(87, 87, 87)
             g.fillRect(x, y, slotSize, slotSize)
+            g.color = Color(60, 60, 60)
+            g.drawRect(x, y, slotSize, slotSize)
         }
 
         // Количество
