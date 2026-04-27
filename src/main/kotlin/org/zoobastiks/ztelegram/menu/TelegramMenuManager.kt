@@ -112,6 +112,10 @@ class TelegramMenuManager(
                 blockedUsers.remove(userId)
             }
         }
+
+		if (bot.handleBookCallback(callbackQuery)) {
+		    return true
+		}
         
         // Парсим callback_data для проверки владельца
         val (action, ownerId) = CallbackData.parseCallbackData(data)
@@ -2493,6 +2497,29 @@ class TelegramMenuManager(
             }
         }
         
+        return false
+    }
+	
+    fun handleBookCallback(callbackQuery: CallbackQuery): Boolean {
+        val data = callbackQuery.data ?: return false
+        val message = callbackQuery.message ?: return false
+        val chatId = message.chatId
+        val messageId = message.messageId
+        
+        if (data.startsWith("prev_") || data.startsWith("next_")) {
+            val parts = data.split("_")
+            if (parts.size >= 3) {
+                val currentIndex = parts[1].toIntOrNull() ?: return false
+                val hash = parts[2]
+                val bookFolder = File(plugin.dataFolder, "inv/books/$hash")
+                
+                val newIndex = if (data.startsWith("next_")) currentIndex + 1 else currentIndex - 1
+                
+                editImageWithKeyboard(chatId, messageId, newIndex, bookFolder, hash)
+                answerCallbackQuery(callbackQuery.id)
+                return true
+            }
+        }
         return false
     }
 }
