@@ -110,6 +110,7 @@ class ZTele : JavaPlugin() {
         logger.info("Configuration reloaded from disk to ensure fresh data")
 
         conf = TConf(this)
+		org.zoobastiks.ztelegram.renderer.ItemTranslator.load()
 		chatManager = ChatManager(this)
         chatManager.loadConfig()
         // Инициализируем менеджер чекинов
@@ -194,10 +195,10 @@ class ZTele : JavaPlugin() {
         val pluginVersion = pluginMeta.version
         val startMessage = arrayOf(
             "§b╭━─━─━─━─━━─≪§e✠§b≫─━──━─━─━─━╮",
-            "§b│ §aAuthor §eZoobastiks                         §b│",
-            "§b│ §aSupport §ehttps://t.me/Zoobastiks           §b│",
+            "§b│ §aAuthor §eAllFiRE                         §b│",
+            "§b│ §aSupport §ehttps://t.me/AllFiRE           §b│",
             "§b│ §aPlugin version §ev$pluginVersion            §b│",
-            "§b│ §aSupport version §e1.21.4 - 1.21.8           §b│",
+            "§b│ §aSupport version §e1.21.6 - 26.2           §b│",
             "§b╰━─━─━─━─━━─≪§e✠§b≫─━──━─━─━─━╯"
         )
 
