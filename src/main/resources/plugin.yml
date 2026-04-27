@@ -3,6 +3,7 @@ version: '1.7'
 main: org.zoobastiks.ztelegram.ZTele
 api-version: '1.21'
 depend: [Vault]
+softdepend: [PlaceholderAPI]
 authors: [Zoobastiks]
 description: Telegram integration for Minecraft server
 
