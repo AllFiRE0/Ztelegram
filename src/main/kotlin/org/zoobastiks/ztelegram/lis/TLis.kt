@@ -117,16 +117,20 @@ class TLis(private val plugin: ZTele) : Listener {
             val playerName = event.player.name
             val message = PlainTextComponentSerializer.plainText().serialize(event.message())
 
-            // 🔥 РЕНДЕРИНГ [item], [inv], [ender]
+            // РЕНДЕРИНГ [item], [inv], [ender]
             if (message.equals("[item]", true) || message.equals("[inv]", true) || message.equals("[ender]", true)) {
                 bot.handleRendering(playerName, message)
+                return
+            }
+        
+            // РЕНДЕРИНГ КНИГИ
+            if (message.contains("book", ignoreCase = true)) {
                 return
             }
 
             // Проверяем, не обрабатывали ли мы уже такое сообщение недавно
             if (!hasRecentlySentMessage(playerName, message)) {
                 bot.sendPlayerChatMessage(playerName, message)
-                // Сохраняем сообщение в кэше
                 markMessageAsProcessed(playerName, message)
                 plugin.logger.info("Message sent to Telegram from AsyncChatEvent: $playerName - $message")
             } else {
