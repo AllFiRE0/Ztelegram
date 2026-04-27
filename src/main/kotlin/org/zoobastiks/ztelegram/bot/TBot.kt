@@ -1594,16 +1594,14 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
         // Создаем карту команд и их псевдонимов
         val commandAliases = mapOf(
             "checkin" to setOf("/checkin"),
-            "admin" to setOf("/admin", "/админ"),
+            "list" to setOf("/list", "/список"),
+            "menu" to setOf("/menu", "/меню"),
             "online" to setOf("/online", "/онлайн"),
             "tps" to setOf("/tps", "/тпс"),
-            "restart" to setOf("/restart", "/рестарт"),
-            "cancelrestart" to setOf("/cancelrestart", "/отменитьрестарт"),
             "gender" to setOf("/gender", "/пол"),
-            "player" to setOf("/player", "/ник", "/игрок"),
+            "player" to setOf("/player", "/ник", "/игрок", "/профиль", "/profile"),
             "help" to setOf("/help", "/помощь"),
             "unreg" to setOf("/unreg", "/отменить"),
-            "list" to setOf("/list", "/список"),
             "game" to setOf("/game", "/игра"),
             "stats" to setOf("/stats", "/статистика"),
             "top" to setOf("/top", "/топ"),
@@ -1612,8 +1610,11 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             "reptop" to setOf("/reptop", "/топрепутация"),
             "reprecent" to setOf("/reprecent", "/репизменения"),
             "random" to setOf("/random", "/рулетка", "/рандом"),
-            "menu" to setOf("/menu", "/меню"),
-            "pay" to setOf("/pay", "/перевод", "/платеж")
+            "pay" to setOf("/pay", "/перевод", "/платеж"),
+            "restart" to setOf("/restart", "/рестарт"),
+            "cancelrestart" to setOf("/cancelrestart", "/отменитьрестарт"),
+            "admin" to setOf("/admin", "/админ"),
+            "checkinreset" to setOf("/checkinreset", "/сбросчекина", "/сбросотметок")
         )
 
         // Разделяем команду и аргументы
@@ -1632,7 +1633,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 }
 
                 // Проверяем права администратора для команд, которые требуют админ доступ
-                if (key in listOf("restart", "cancelrestart", "list") && !conf.isAdministrator(userId)) {
+                if (key in listOf("restart", "cancelrestart", "list", "checkinreset") && !conf.isAdministrator(userId)) {
                     sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.errorsNoAdminPermission, conf.commandsAutoDeleteSeconds)
                     return
                 }
@@ -1650,6 +1651,31 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
     private fun executeCommand(command: String, arguments: String, username: String, userId: Long, channelType: String) {
         when (command) {
             "checkin" -> {
+                // Сброс очков чекина для администраторов
+                if (arguments.startsWith("reset ")) {
+                    if (!conf.isAdministrator(userId)) {
+                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ У вас нет прав для сброса очков чекина!", conf.commandsAutoDeleteSeconds)
+                        return
+                    }
+                    
+                    val targetName = arguments.removePrefix("reset ").trim()
+                    val connection = ZTele.checkinManager.getConnection()
+                    val deleted = connection?.prepareStatement("DELETE FROM checkins WHERE player_name = ?")?.use { stmt ->
+                        stmt.setString(1, targetName.lowercase())
+                        stmt.executeUpdate()
+                    } ?: 0
+                    
+                    if (deleted > 0) {
+                        val message = conf.checkinResetSuccess.replace("%player%", targetName)
+                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                    } else {
+                        val message = conf.checkinResetNotFound.replace("%player%", targetName)
+                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                    }
+                    return
+                }
+                
+                // Обычная логика чекина
                 if (!conf.checkinEnabled) return
                 val playerName = mgr.getPlayerByTelegramId(userId.toString())
                 if (playerName == null && conf.checkinRequireRegistration) {
@@ -1665,6 +1691,28 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                             result.message, conf.commandsAutoDeleteSeconds)
                     })
                 })
+            }
+
+            "checkinreset" -> {
+                if (arguments.isEmpty()) {
+                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ Использование: /checkinreset <никнейм>", conf.commandsAutoDeleteSeconds)
+                    return
+                }
+                
+                val targetName = arguments.trim()
+                val connection = ZTele.checkinManager.getConnection()
+                val deleted = connection?.prepareStatement("DELETE FROM checkins WHERE player_name = ?")?.use { stmt ->
+                    stmt.setString(1, targetName.lowercase())
+                    stmt.executeUpdate()
+                } ?: 0
+                
+                if (deleted > 0) {
+                    val message = conf.checkinResetSuccess.replace("%player%", targetName)
+                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                } else {
+                    val message = conf.checkinResetNotFound.replace("%player%", targetName)
+                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                }
             }
             
             "admin" -> {
@@ -2637,6 +2685,8 @@ $topList
                     sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "⏳ Меню еще не готово. Подождите немного...", conf.commandsAutoDeleteSeconds)
                 }
             }
+
+            
 
             "pay" -> {
                 if (!conf.paymentEnabled) return
