@@ -177,4 +177,6 @@ class CheckinManager(private val plugin: ZTele) {
     }
 
     fun close() = connection?.close()
+
+    fun getConnection() = connection
 }
