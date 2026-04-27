@@ -522,6 +522,10 @@ checkin:
     in_game_alias: "ch"
     # Команда в Telegram
     telegram: "checkin"
+
+  reset:
+    success: "§aОчки чекина для игрока §e%player% §aсброшены!"
+    not_found: "§cИгрок §e%player% §cне найден в базе чекинов!"
     
   # 📱 Настройки кнопки в меню
   menu:
