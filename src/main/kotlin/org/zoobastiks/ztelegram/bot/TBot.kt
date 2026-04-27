@@ -2,13 +2,16 @@ package org.zoobastiks.ztelegram.bot
 
 import org.bukkit.Bukkit
 import org.json.JSONObject
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
+import org.telegram.telegrambots.meta.api.objects.InputFile
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton
+import java.io.ByteArrayInputStream
 import net.kyori.adventure.text.Component
 import org.bukkit.Material
 import org.zoobastiks.ztelegram.renderer.ItemRenderer
 import org.zoobastiks.ztelegram.renderer.InventoryRenderer
 import org.zoobastiks.ztelegram.renderer.EnderChestRenderer
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
-import org.telegram.telegrambots.meta.api.objects.InputFile
 import java.io.ByteArrayInputStream
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
@@ -20,7 +23,6 @@ import org.telegram.telegrambots.meta.api.methods.updates.DeleteWebhook
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.DeleteMessage
 import org.telegram.telegrambots.meta.api.methods.updatingmessages.EditMessageText
 import org.telegram.telegrambots.meta.api.methods.AnswerCallbackQuery
-import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
 import org.telegram.telegrambots.meta.api.objects.User
