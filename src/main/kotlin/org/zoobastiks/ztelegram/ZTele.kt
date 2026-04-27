@@ -2,6 +2,7 @@ package org.zoobastiks.ztelegram
 
 import org.bukkit.Bukkit
 import java.io.File
+import org.zoobastiks.ztelegram.chat.ChattyListener
 import org.zoobastiks.ztelegram.chat.ChatManager
 import org.zoobastiks.ztelegram.checkin.CheckinManager
 import org.zoobastiks.ztelegram.checkin.CheckinCommand
@@ -470,6 +471,7 @@ class ZTele : JavaPlugin() {
 
     private fun registerListeners() {
         server.pluginManager.registerEvents(TLis(this), this)
+		server.pluginManager.registerEvents(ChattyListener(this), this) 
     }
 
     private fun startBot() {
