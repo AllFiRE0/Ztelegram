@@ -23,7 +23,15 @@ class TConf(private val plugin: ZTele) {
 
     // Debug settings
     var debugEnabled: Boolean = false
-    var validationEnabled: Boolean = true
+   // Events - Advancements
+    var advancementsEnabled: Boolean = true
+    var advancementsSendImage: Boolean = true
+    var advancementsTaskEnabled: Boolean = true
+    var advancementsTaskFormat: String = "✨ **%player%** получил достижение **%advancement%**\n_%description%_"
+    var advancementsGoalEnabled: Boolean = true
+    var advancementsGoalFormat: String = "🎯 **%player%** выполнил цель **%advancement%**\n_%description%_"
+    var advancementsChallengeEnabled: Boolean = true
+    var advancementsChallengeFormat: String = "🔥 **%player%** завершил испытание **%advancement%**\n_%description%_"
     
     // Database settings
     var databaseEnabled: Boolean = true // Включить SQLite базу данных вместо YAML файлов
@@ -1002,6 +1010,14 @@ class TConf(private val plugin: ZTele) {
 
         // Server events
         serverStartEnabled = conf.getBoolean("events.server-start.enabled", true)
+        advancementsEnabled = conf.getBoolean("events.advancements.enabled", true)
+        advancementsSendImage = conf.getBoolean("events.advancements.send_image", true)
+        advancementsTaskEnabled = conf.getBoolean("events.advancements.task.enabled", true)
+        advancementsTaskFormat = conf.getString("events.advancements.task.format", advancementsTaskFormat) ?: advancementsTaskFormat
+        advancementsGoalEnabled = conf.getBoolean("events.advancements.goal.enabled", true)
+        advancementsGoalFormat = conf.getString("events.advancements.goal.format", advancementsGoalFormat) ?: advancementsGoalFormat
+        advancementsChallengeEnabled = conf.getBoolean("events.advancements.challenge.enabled", true)
+        advancementsChallengeFormat = conf.getString("events.advancements.challenge.format", advancementsChallengeFormat) ?: advancementsChallengeFormat
         serverStopEnabled = conf.getBoolean("events.server-stop.enabled", true)
         serverStartMessage = conf.getString("events.server-start.message", serverStartMessage) ?: serverStartMessage
         serverStopMessage = conf.getString("events.server-stop.message", serverStopMessage) ?: serverStopMessage
