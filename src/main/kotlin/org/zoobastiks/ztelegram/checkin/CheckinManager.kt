@@ -118,6 +118,7 @@ class CheckinManager(private val plugin: ZTele) {
                 .replace("%total%", newPoints.toString())
                 .replace("%streak%", newStreak.toString())
                 .replace("%cooldown%", "${h}ч")
+                .replace("%currency%", ZTele.conf.checkinCurrencyName)
         )
     }
 
