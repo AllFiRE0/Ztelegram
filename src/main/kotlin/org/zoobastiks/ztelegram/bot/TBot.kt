@@ -2,6 +2,7 @@ package org.zoobastiks.ztelegram.bot
 
 import org.bukkit.Bukkit
 import java.io.File
+import org.telegram.telegrambots.meta.api.objects.CallbackQuery
 import org.json.JSONObject
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
 import org.telegram.telegrambots.meta.api.objects.InputFile
