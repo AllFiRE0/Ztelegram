@@ -5121,6 +5121,7 @@ $topList
     }
     
     // ========== МЕТОДЫ ДЛЯ КНИГ С КЛАВИАТУРОЙ ==========
+    
     private fun createInlineKeyboardJson(
         prevCallbackData: String,
         nextCallbackData: String,
@@ -5132,7 +5133,7 @@ $topList
                 put("inline_keyboard", listOf(
                     listOf(
                         JSONObject().apply {
-                            put("text", " ➡️ ")
+                            put("text", "Next ➡️")
                             put("callback_data", nextCallbackData)
                         }
                     )
@@ -5143,7 +5144,7 @@ $topList
                 put("inline_keyboard", listOf(
                     listOf(
                         JSONObject().apply {
-                            put("text", " ⬅️ ")
+                            put("text", "⬅️ Back")
                             put("callback_data", prevCallbackData)
                         }
                     )
@@ -5154,11 +5155,11 @@ $topList
             put("inline_keyboard", listOf(
                 listOf(
                     JSONObject().apply {
-                        put("text", " ⬅️ ")
+                        put("text", "⬅️ Back")
                         put("callback_data", prevCallbackData)
                     },
                     JSONObject().apply {
-                        put("text", " ➡️ ")
+                        put("text", "Next ➡️")
                         put("callback_data", nextCallbackData)
                     }
                 )
@@ -5166,13 +5167,13 @@ $topList
         }.toString()
     }
     
-    fun sendImageWithKeyboard(chatId: Long, imageIndex: Int, imageDirectory: java.io.File, caption: String?) {
-        val imageFile = java.io.File(imageDirectory, "page$imageIndex.png")
+    fun sendImageWithKeyboard(chatId: Long, imageIndex: Int, imageDirectory: File, caption: String?) {
+        val imageFile = File(imageDirectory, "page$imageIndex.png")
         val totalPages = imageDirectory.listFiles { file -> file.name.endsWith(".png") }?.size ?: 1
         val isLastPage = imageIndex == totalPages
         
         val imageBytes = imageFile.readBytes()
-        val bookHash = imageDirectory.absolutePath.split(java.io.File.separator).last()
+        val bookHash = imageDirectory.absolutePath.split(File.separator).last()
         
         var keyboardJson = ""
         if (!isLastPage) {
@@ -5182,8 +5183,8 @@ $topList
         sendPhotoWithKeyboard(chatId.toString(), imageBytes, caption, keyboardJson)
     }
     
-    fun editImageWithKeyboard(chatId: Long, messageId: Int, imageIndex: Int, imageDirectory: java.io.File, hash: String) {
-        val imageFile = java.io.File(imageDirectory, "page$imageIndex.png")
+    fun editImageWithKeyboard(chatId: Long, messageId: Int, imageIndex: Int, imageDirectory: File, hash: String) {
+        val imageFile = File(imageDirectory, "page$imageIndex.png")
         val totalPages = imageDirectory.listFiles { file -> file.name.endsWith(".png") }?.size ?: 1
         
         val isFirstPage = imageIndex == 1
@@ -5251,5 +5252,30 @@ $topList
         } catch (e: Exception) {
             handleConnectionError(e, "EDIT_MESSAGE_PHOTO")
         }
+    }
+    
+    // ========== ОБРАБОТЧИК НАЖАТИЙ КНОПОК ==========
+    
+    fun handleBookCallback(callbackQuery: CallbackQuery): Boolean {
+        val data = callbackQuery.data ?: return false
+        val message = callbackQuery.message ?: return false
+        val chatId = message.chatId
+        val messageId = message.messageId
+        
+        if (data.startsWith("prev_") || data.startsWith("next_")) {
+            val parts = data.split("_")
+            if (parts.size >= 3) {
+                val currentIndex = parts[1].toIntOrNull() ?: return false
+                val hash = parts[2]
+                val bookFolder = File(plugin.dataFolder, "inv/books/$hash")
+                
+                val newIndex = if (data.startsWith("next_")) currentIndex + 1 else currentIndex - 1
+                
+                editImageWithKeyboard(chatId, messageId, newIndex, bookFolder, hash)
+                answerCallbackQuery(callbackQuery.id)
+                return true
+            }
+        }
+        return false
     }
 }
