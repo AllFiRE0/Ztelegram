@@ -12,7 +12,6 @@ import org.bukkit.Material
 import org.zoobastiks.ztelegram.renderer.ItemRenderer
 import org.zoobastiks.ztelegram.renderer.InventoryRenderer
 import org.zoobastiks.ztelegram.renderer.EnderChestRenderer
-import java.io.ByteArrayInputStream
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
