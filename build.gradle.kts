@@ -24,6 +24,7 @@ repositories {
 
 dependencies {
     implementation("org.telegram:telegrambots:6.9.7.1")
+    implementation("org.json:json:20240303")
     compileOnly("io.papermc.paper:paper-api:1.21.4-R0.1-SNAPSHOT") // Совместимо с 1.21.11 (Paper API обратно совместим)
     implementation("org.jetbrains.kotlin:kotlin-stdlib:1.9.22")
     implementation("net.kyori:adventure-api:4.17.0")
