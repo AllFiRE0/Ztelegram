@@ -5054,12 +5054,69 @@ $topList
         deleteAfterSeconds: Int,
         configPath: String? = null
     ) {
-        // ... весь твой существующий код ...
+        if (conf.debugEnabled) {
+            plugin.logger.info("[sendAutoDeleteMessage] Input chatId: '$chatId', parsed baseChatId: '${chatId.substringBefore("_")}', threadId: ${if (chatId.contains("_")) chatId.substringAfter("_") else "null"}")
+        }
+
+        if (chatId.isEmpty() || text.isEmpty()) {
+            if (conf.debugEnabled) {
+                plugin.logger.info("[sendAutoDeleteMessage] Skipped: chatId.isEmpty=${chatId.isEmpty()}, text.isEmpty=${text.isEmpty()}")
+            }
+            return
+        }
+
+        if (!connectionState.get()) {
+            if (conf.debugEnabled) {
+                plugin.logger.info("[sendAutoDeleteMessage] Skipped: connection is inactive")
+            }
+            logThrottled("SEND_AUTO_DELETE", "Cannot send message - connection is inactive", "WARNING")
+            return
+        }
+
+        if (conf.debugEnabled) {
+            plugin.logger.info("[sendAutoDeleteMessage] Sending to main chat ${chatId.substringBefore("_")} ${if (chatId.contains("_")) "(thread ${chatId.substringAfter("_")})" else "(no thread)"}")
+        }
+
+        try {
+            val (baseChatId, threadId) = parseChatId(chatId)
+            val sendMessage = SendMessage(baseChatId, convertToHtml(text))
+
+            if (threadId != null) {
+                sendMessage.messageThreadId = threadId
+            }
+            sendMessage.parseMode = "HTML"
+
+            val sentMessage = execute(sendMessage)
+
+            if (deleteAfterSeconds > 0 && sentMessage != null) {
+                plugin.server.scheduler.runTaskLaterAsynchronously(plugin, Runnable {
+                    try {
+                        val deleteMessage = DeleteMessage(baseChatId, sentMessage.messageId)
+                        execute(deleteMessage)
+                    } catch (e: Exception) {
+                        // Игнорируем ошибки удаления
+                    }
+                }, (deleteAfterSeconds * 20L))
+            }
+
+        } catch (e: org.telegram.telegrambots.meta.exceptions.TelegramApiRequestException) {
+            org.zoobastiks.ztelegram.utils.TelegramErrorDiagnostics.diagnoseError(
+                exception = e,
+                context = "SEND_AUTO_DELETE_MESSAGE",
+                message = text,
+                configPath = configPath
+            )
+        } catch (e: org.telegram.telegrambots.meta.exceptions.TelegramApiException) {
+            org.zoobastiks.ztelegram.utils.TelegramErrorDiagnostics.diagnoseError(
+                exception = e,
+                context = "SEND_AUTO_DELETE_MESSAGE",
+                message = text,
+                configPath = configPath
+            )
+        } catch (e: Exception) {
+            handleConnectionError(e, "SEND_AUTO_DELETE_UNEXPECTED")
+        }
     }
-
-    // 👇 ВСТАВЬ НОВЫЕ МЕТОДЫ СЮДА (ПЕРЕД ПОСЛЕДНЕЙ СКОБКОЙ) 👇
-
-    // ========== МЕТОДЫ ДЛЯ КНИГ С КЛАВИАТУРОЙ ==========
     
     private fun createInlineKeyboardJson(
         prevCallbackData: String,
