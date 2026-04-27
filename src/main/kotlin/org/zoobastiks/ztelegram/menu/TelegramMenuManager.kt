@@ -1,6 +1,7 @@
 package org.zoobastiks.ztelegram.menu
 
 import org.bukkit.Bukkit
+import java.io.File
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup
 import org.zoobastiks.ztelegram.ZTele
