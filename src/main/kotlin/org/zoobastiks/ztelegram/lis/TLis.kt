@@ -117,6 +117,12 @@ class TLis(private val plugin: ZTele) : Listener {
             val playerName = event.player.name
             val message = PlainTextComponentSerializer.plainText().serialize(event.message())
 
+            // 🔥 РЕНДЕРИНГ [item], [inv], [ender]
+            if (message.equals("[item]", true) || message.equals("[inv]", true) || message.equals("[ender]", true)) {
+                bot.handleRendering(playerName, message)
+                return
+            }
+
             // Проверяем, не обрабатывали ли мы уже такое сообщение недавно
             if (!hasRecentlySentMessage(playerName, message)) {
                 bot.sendPlayerChatMessage(playerName, message)
@@ -130,8 +136,6 @@ class TLis(private val plugin: ZTele) : Listener {
             plugin.logger.warning("Error processing AsyncChatEvent: ${e.message}")
         }
     }
-
-
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     fun onPlayerCommand(event: PlayerCommandPreprocessEvent) {
