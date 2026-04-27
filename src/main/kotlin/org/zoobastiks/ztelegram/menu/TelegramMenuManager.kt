@@ -2516,8 +2516,8 @@ class TelegramMenuManager(
                 
                 val newIndex = if (data.startsWith("next_")) currentIndex + 1 else currentIndex - 1
                 
-                editImageWithKeyboard(chatId, messageId, newIndex, bookFolder, hash)
-                answerCallbackQuery(callbackQuery.id)
+                bot.editImageWithKeyboard(chatId, messageId, newIndex, bookFolder, hash)
+            	bot.answerCallbackQuery(callbackQuery.id)
                 return true
             }
         }
