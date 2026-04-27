@@ -1,4 +1,4 @@
-package eu.pablob.paper_telegram_bridge
+package org.zoobastiks.ztelegram.renderer
 
 import java.io.InputStream
 import org.bukkit.inventory.meta.PotionMeta
