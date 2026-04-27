@@ -1,4 +1,4 @@
-package eu.pablob.paper_telegram_bridge
+package org.zoobastiks.ztelegram.renderer
 
 import java.awt.Color
 import java.awt.Graphics2D
