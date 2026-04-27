@@ -1,68 +1,103 @@
-package org.zoobastiks.ztelegram.renderer
+package eu.pablob.paper_telegram_bridge
 
+import java.awt.Color
+import java.awt.Graphics2D
+import java.awt.image.BufferedImage
+import javax.imageio.ImageIO
 import org.bukkit.Material
 import org.bukkit.inventory.Inventory
 import org.bukkit.inventory.ItemStack
-import java.awt.*
-import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
-import javax.imageio.ImageIO
 
 class EnderChestRenderer {
-    private val slotSize = 32
-    private val padding = 4
-    private val borderSize = 16
-    
-    fun renderEnderChest(inventory: Inventory): ByteArray {
-        val columns = 9
-        val rows = 3
-        val imageWidth = columns * (slotSize + padding) + borderSize * 2
-        val imageHeight = rows * (slotSize + padding) + borderSize * 2
-        val image = BufferedImage(imageWidth, imageHeight, BufferedImage.TYPE_INT_ARGB)
+
+    private val slotSize = 32 // Size of each slot in pixels
+    private val padding = 4 // Padding between slots in pixels
+    private val borderSize = 16 // Border size around slots in pixels
+    private val background: BufferedImage? = loadImage("/enderBackground.png", this.javaClass)
+
+    fun renderEnderChestToFile(inventory: Inventory): ByteArray {
+        val columns = 9  // Ender Chest has 9 columns
+        val rows = 3      // Ender Chest has 3 rows
+
+        val image = BufferedImage(
+            background?.width!!,
+            background.height,
+            BufferedImage.TYPE_INT_ARGB
+        )
+
         val g = image.createGraphics()
-        
-        // Фон
-        g.color = Color(139, 139, 139)
-        g.fillRect(0, 0, imageWidth, imageHeight)
-        
+
+        // Draw the background first
+        background.let {
+            g.drawImage(it, 0, 0, null)
+        }
+
+        // Render slots and items
         for (row in 0 until rows) {
             for (col in 0 until columns) {
-                val index = row * 9 + col
-                val x = col * (slotSize + padding) + borderSize
+                val index = row * columns + col // Standard slot numbering
+
+                val x = col * (slotSize + padding) + borderSize + 1
                 val y = row * (slotSize + padding) + borderSize
-                
+
+                // Draw item in slot (if present)
                 val item = inventory.getItem(index)
                 if (item != null && item.type != Material.AIR) {
                     drawItem(g, item, x, y)
-                } else {
-                    g.color = Color(100, 100, 100, 50)
-                    g.fillRect(x, y, slotSize, slotSize)
+
+                    // Render enchantment tint if the item is enchanted
+                    if (item.enchantments.isNotEmpty()) {
+                        g.color = Color(128, 0, 128, 48) // Purple with 48 alpha
+                        g.fillRect(x, y, slotSize, slotSize)
+                    }
                 }
             }
         }
-        
+
         g.dispose()
-        val out = ByteArrayOutputStream()
-        ImageIO.write(image, "png", out)
-        return out.toByteArray()
+
+        // Save the image to a file
+        // val outputFile = File(plugin.dataFolder, "inv/$filePath")
+        val outputStream = ByteArrayOutputStream()
+        ImageIO.write(image, "png", outputStream)
+        val imageBytes = outputStream.toByteArray()
+        outputStream.close()
+        return imageBytes
     }
-    
+
     private fun drawItem(g: Graphics2D, item: ItemStack, x: Int, y: Int) {
-        val name = item.type.name.lowercase()
-        val texture = loadItemTexture(name, this.javaClass)
-        if (texture != null) {
-            g.drawImage(texture, x, y, slotSize, slotSize, null)
+        val itemName = item.type.name.lowercase()
+        if (itemName == "potion") {
+            // Handle potions differently
+            val potionTexture = loadPotionTexture(item, this.javaClass) ?: loadAwkwardPotionTexture(this.javaClass)
+            if (potionTexture != null) {
+                g.drawImage(potionTexture, x + 8, y + 8, slotSize - 16, slotSize - 16, null)
+            }
+        } else if (itemName.contains("map")) {
+            // Handle maps
+            g.drawImage(loadMapTexture(this.javaClass), x + 8, y + 8, slotSize - 16, slotSize - 16, null)
         } else {
-            g.color = Color.GRAY
-            g.fillRect(x, y, slotSize, slotSize)
+            // Handle non-potion items
+            val texture = loadItemTexture(itemName, this.javaClass)
+            if (texture != null) {
+                g.drawImage(texture, x + 1, y + 1, slotSize - 1, slotSize - 1, null)
+            } else {
+                // Fallback to drawing a gray box
+                g.color = Color.GRAY
+                g.fillRect(x + 8, y + 8, slotSize - 16, slotSize - 16)
+            }
         }
-        
+
+        // Optionally, draw the item count adjusted to the bottom-right
         if (item.amount > 1) {
             g.color = Color.WHITE
-            g.font = Font("SansSerif", Font.BOLD, 16)
-            val count = item.amount.toString()
-            val w = g.fontMetrics.stringWidth(count)
-            g.drawString(count, x + slotSize - w + 2, y + slotSize + 10)
+            g.font = MinecraftFontLoader.getFont(16f)
+            val countText = item.amount.toString()
+            val textWidth = g.fontMetrics.stringWidth(countText)
+
+            // Adjusted the item count position to bottom-right
+            g.drawString(countText, x + slotSize - textWidth + 2, y + slotSize + 10)
         }
     }
 }

@@ -1,110 +1,168 @@
-package org.zoobastiks.ztelegram.renderer
+package eu.pablob.paper_telegram_bridge
+
 
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.inventory.ItemStack
-import org.bukkit.inventory.meta.Damageable
 import org.bukkit.inventory.meta.EnchantmentStorageMeta
-import java.awt.*
-import java.awt.image.BufferedImage
-import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
+import java.awt.image.BufferedImage
+import java.awt.Color
+import java.awt.Graphics2D
+import java.io.ByteArrayOutputStream
+import java.util.*
 
 class ItemRenderer {
     private val width = 250
     private val imageScale = 48
     private val margin = 12
-    private val backgroundColor = Color(33, 9, 57)
-    private val borderColor = Color(26, 11, 26)
-    private val enchantmentColor = Color(167, 167, 167)
+    private val backgroundColor = "#210939"
+    private val borderColor = "#1A0B1A"
+    private val enchantmentColor = "#A7A7A7"
 
-    fun renderItem(item: ItemStack): ByteArray {
+    fun renderItemToFile(item: ItemStack): Pair<ByteArray, String> {
+
+        // Default rendering for non-map items
         val texture = loadTexture(item)
-        val height = calculateHeight(item)
+        val height = calculateDynamicHeight(item)
         val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
         val g = image.createGraphics()
 
-        // Фон
-        g.color = backgroundColor
-        g.fillRect(0, 0, width, height)
-        g.color = borderColor
-        g.fillRect(4, 4, width - 8, height - 8)
+        drawBackground(g, height)
+        drawTexture(g, texture)
+        val itemName = drawItemName(g, item)
 
-        // Текстура
-        if (texture != null) {
-            g.drawImage(texture, margin, margin, imageScale, imageScale, null)
-        } else {
-            g.color = Color.GRAY
-            g.fillRect(margin, margin, imageScale, imageScale)
-        }
+        // Calculate textYOffset for enchantments and durability
+        var textYOffset = imageScale + margin + 50 // Start below the item name
 
-        // Название
-        g.font = Font("SansSerif", Font.BOLD, 16)
-        val displayName = PlainTextComponentSerializer.plainText().serialize(item.displayName())
-        val itemName = if (displayName.isNotEmpty()) {
-            displayName
-        } else {
-            ItemTranslator.translateItem(item.type.name)
-        }
-        g.color = when {
-            item.itemMeta?.hasEnchants() == true -> Color.CYAN
-            item.type.name.contains("TOTEM", true) -> Color.YELLOW
-            else -> Color.WHITE
-        }
-        g.drawString(itemName, margin, imageScale + margin + 30)
+        // Draw enchantments and update textYOffset
+        textYOffset = drawEnchantments(g, item, textYOffset)
 
-        var yOffset = imageScale + margin + 50
+        // Draw durability below enchantments (or item name if no enchantments)
+        drawDurability(g, item, textYOffset)
 
-        // Зачарования
-        val enchants = if (item.itemMeta is EnchantmentStorageMeta) {
-            (item.itemMeta as EnchantmentStorageMeta).storedEnchants
-        } else item.enchantments
-
-        if (enchants.isNotEmpty()) {
-            g.font = Font("SansSerif", Font.PLAIN, 14)
-            g.color = enchantmentColor
-            for ((ench, level) in enchants) {
-                val name = ItemTranslator.translateEnchantment(ench.key.key, level)
-                g.drawString(name, margin, yOffset)
-                yOffset += 20
-            }
-        }
-
-        // Прочность
-        if (item.itemMeta is Damageable && item.type.maxDurability > 0) {
-            g.font = Font("SansSerif", Font.PLAIN, 14)
-            g.color = Color.WHITE
-            val meta = item.itemMeta as Damageable
-            val dura = item.type.maxDurability - meta.damage
-            g.drawString("Прочность: $dura/${item.type.maxDurability}", margin, yOffset)
-        }
-
-        // Количество
-        if (item.amount > 1) {
-            g.font = Font("SansSerif", Font.BOLD, 20)
-            g.color = Color.WHITE
-            g.drawString("x${item.amount}", margin + imageScale + 10, margin + imageScale - 5)
-        }
+        // Draw stack size
+        drawStackSize(g, item)
 
         g.dispose()
-        val out = ByteArrayOutputStream()
-        ImageIO.write(image, "png", out)
-        return out.toByteArray()
+
+        val outputStream = ByteArrayOutputStream()
+        ImageIO.write(image, "png", outputStream)
+        val imageBytes = outputStream.toByteArray()
+        outputStream.close()
+        return Pair(imageBytes, itemName)
     }
 
     private fun loadTexture(item: ItemStack): BufferedImage? {
-        val name = item.type.name.lowercase()
-        return when {
-            name.contains("potion") -> loadPotionTexture(item, this.javaClass)
-            name.contains("map") -> loadMapTexture(this.javaClass)
-            else -> loadItemTexture(name, this.javaClass)
+        return when (val itemName = item.type.name.lowercase()) {
+            "potion", "splash_potion", "lingering_potion" ->
+                loadPotionTexture(item, this.javaClass) ?: loadAwkwardPotionTexture(this.javaClass)
+
+            "filled_map" -> loadMapTexture(this.javaClass)
+            else -> loadItemTexture(itemName, this.javaClass)
         }
     }
 
-    private fun calculateHeight(item: ItemStack): Int {
-        var height = imageScale + margin * 2 + 40
-        val enchants = (item.itemMeta as? EnchantmentStorageMeta)?.storedEnchants ?: item.enchantments
-        height += enchants.size * 20
-        if (item.itemMeta is Damageable && item.type.maxDurability > 0) height += 20
-        return height + margin
+
+    private fun calculateDynamicHeight(item: ItemStack): Int {
+        var height = imageScale + margin * 2 + 30 // Base height for texture and name
+
+        val enchantments = if (item.itemMeta is EnchantmentStorageMeta) {
+            (item.itemMeta as EnchantmentStorageMeta).storedEnchants
+        } else {
+            item.enchantments
+        }
+
+        if (enchantments.isNotEmpty()) {
+            height += 20 * enchantments.size // Add space for enchantments
+        }
+
+        if (item.itemMeta is org.bukkit.inventory.meta.Damageable && item.type.maxDurability > 0) {
+            height += 20 // Add space for durability
+        }
+
+        return height + margin // Add bottom margin
+    }
+
+    private fun drawBackground(g: Graphics2D, height: Int) {
+        g.color = Color.decode(backgroundColor)
+        g.fillRect(0, 0, width, height)
+        g.color = Color.decode(borderColor)
+        g.fillRect(4, 4, width - 8, height - 8)
+    }
+
+    private fun drawTexture(g: Graphics2D, texture: BufferedImage?) {
+        if (texture == null) {
+            g.color = Color.GRAY
+            g.fillRect(margin, margin, imageScale, imageScale)
+        } else {
+            g.drawImage(texture, margin, margin, imageScale, imageScale, null)
+        }
+    }
+
+    private fun drawItemName(g: Graphics2D, item: ItemStack): String {
+        val displayName = PlainTextComponentSerializer.plainText().serialize(item.displayName())
+            .replace("[", "").replace("]", "")
+        val fullName = if (displayName.isNotEmpty()) displayName else ItemTranslator.translateItem(item.type.name)
+        val nameColor = determineNameColor(item)
+        g.font = MinecraftFontLoader.getFont(16f)
+        g.color = nameColor
+        g.drawString(fullName, margin, imageScale + margin + 30)
+        return fullName
+    }
+
+    // Оставляем для совместимости, но НЕ используем
+    private fun getItemName(item: ItemStack, displayName: String?): String {
+        val itemTypeName = item.type.name.replace('_', ' ').lowercase().replaceFirstChar { it.uppercase() }
+        return if (!displayName.isNullOrEmpty()) "$displayName" else itemTypeName
+    }
+
+    private fun determineNameColor(item: ItemStack): Color {
+        return when {
+            item.itemMeta?.hasEnchants() == true || (item.itemMeta is EnchantmentStorageMeta && (item.itemMeta as EnchantmentStorageMeta).storedEnchants.isNotEmpty()) -> Color.CYAN
+            item.type.name.contains("totem", ignoreCase = true) || item.type.name.contains("book", ignoreCase = true) -> Color.YELLOW
+            else -> Color.WHITE
+        }
+    }
+
+    private fun drawEnchantments(g: Graphics2D, item: ItemStack, textYOffset: Int): Int {
+        val enchantments = if (item.itemMeta is EnchantmentStorageMeta) {
+            (item.itemMeta as EnchantmentStorageMeta).storedEnchants
+        } else {
+            item.enchantments
+        }
+        if (enchantments.isNotEmpty()) {
+            g.font = MinecraftFontLoader.getFont(14f)
+            g.color = Color.decode(enchantmentColor)
+            var currentYOffset = textYOffset
+            for ((enchantment, level) in enchantments) {
+                val name = ItemTranslator.translateEnchantment(enchantment.key.key, level)
+                g.drawString(name, margin, currentYOffset)
+                currentYOffset += 20
+            }
+            return currentYOffset
+        }
+        return textYOffset
+    }
+
+    private fun drawDurability(g: Graphics2D, item: ItemStack, textYOffset: Int) {
+        if (item.itemMeta is org.bukkit.inventory.meta.Damageable && item.type.maxDurability > 0) {
+            g.font = MinecraftFontLoader.getFont(14f)
+            g.color = Color.WHITE
+            val currentDurability =
+                item.type.maxDurability - (item.itemMeta as org.bukkit.inventory.meta.Damageable).damage
+            g.drawString("Durability: $currentDurability/${item.type.maxDurability}", margin, textYOffset)
+        }
+    }
+
+    private fun drawStackSize(g: Graphics2D, item: ItemStack) {
+        if (item.amount > 1) {
+            g.font = MinecraftFontLoader.getFont(20f)
+            g.color = Color.WHITE
+            val stackSize = "x ${item.amount}"
+            // val textWidth = g.fontMetrics.stringWidth(stackSize)
+            val x = margin + imageScale + 10 // Position to the right of the texture with a small margin
+            val y = margin + imageScale - 5 // Slightly higher to align with the texture
+            g.drawString(stackSize, x, y)
+        }
     }
 }
