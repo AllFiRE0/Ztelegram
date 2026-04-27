@@ -1,6 +1,8 @@
 package org.zoobastiks.ztelegram.lis
 
 import io.papermc.paper.event.player.AsyncChatEvent
+import org.bukkit.Material
+import org.zoobastiks.ztelegram.renderer.BookRenderer
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.event.EventHandler
