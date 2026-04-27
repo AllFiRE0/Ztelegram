@@ -2,6 +2,7 @@ package org.zoobastiks.ztelegram.renderer
 
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.inventory.ItemStack
+import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.inventory.meta.BookMeta
 import java.awt.Graphics2D
 import java.awt.image.BufferedImage
