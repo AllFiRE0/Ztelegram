@@ -132,7 +132,7 @@ class TLis(private val plugin: ZTele) : Listener {
             }
     
             val item = display.icon()
-            val textColor = Color(display.frame().color().asRGB())
+            val textColor = Color.decode(display.frame().color().asHexString())
 
             plugin.server.scheduler.runTaskAsynchronously(plugin, Runnable {
                 val renderer = AdvancementRenderer()
