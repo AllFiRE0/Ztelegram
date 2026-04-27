@@ -1619,7 +1619,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
         // Разделяем команду и аргументы
         val parts = command.split(" ", limit = 2)
-        val cmd = parts[0].lowercase().removeSuffix("@${botUsername.lowercase()}
+        val cmd = parts[0].lowercase().removeSuffix("@${botUsername.lowercase()}")
         val arguments = if (parts.size > 1) parts[1] else ""
 
         // Определяем, какая команда была вызвана
