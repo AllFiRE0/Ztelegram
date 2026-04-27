@@ -11,7 +11,7 @@ import java.awt.Color
 import java.awt.FontMetrics
 import java.security.MessageDigest
 
-class BookRenderer(private val plugin: AsyncJavaPlugin) {
+class BookRenderer(private val plugin: JavaPlugin) {
     private val marginLeft = 40
     private val marginTop = 60
     private val pageWidth = 350
