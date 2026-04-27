@@ -1,4 +1,4 @@
-package eu.pablob.paper_telegram_bridge
+package org.zoobastiks.ztelegram.renderer
 
 import java.awt.Font
 import java.awt.GraphicsEnvironment
