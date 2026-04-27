@@ -3731,6 +3731,7 @@ $topList
 
         if (!conf.mainChannelEnabled || !conf.chatPlayerChatEnabled || mgr.isPlayerHidden(playerName)) return
 
+        // Новая система game_chats
         if (conf.gameChatsEnabled && conf.gameChatsMinecraftToTelegram) {
             val matchedChat = ZTele.chatManager.getChatByPrefix(chatMessage)
             val targetChat = matchedChat ?: ZTele.chatManager.getDefaultChat()
@@ -3757,12 +3758,15 @@ $topList
             }
         }
 
-        val context = PlaceholderEngine.createCustomContext(mapOf(
-            "player" to playerName,
-            "message" to chatMessage
-        ))
-        val message = PlaceholderEngine.process(conf.chatMinecraftToTelegramFormat, context)
-        sendAutoDeleteMessage(conf.mainChannelId, message, 0)
+        // Fallback: старая система (только если включена)
+        if (conf.chatMinecraftToTelegramEnabled && conf.chatMinecraftToTelegramFormat.isNotEmpty()) {
+            val context = PlaceholderEngine.createCustomContext(mapOf(
+                "player" to playerName,
+                "message" to chatMessage
+            ))
+            val message = PlaceholderEngine.process(conf.chatMinecraftToTelegramFormat, context)
+            sendAutoDeleteMessage(conf.mainChannelId, message, 0)
+        }
     }
 
     fun sendPlayerCommandMessage(playerName: String, command: String) {
