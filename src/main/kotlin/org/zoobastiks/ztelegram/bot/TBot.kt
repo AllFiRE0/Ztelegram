@@ -1341,6 +1341,35 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             return
         }
 
+        // Рендеринг [item], [inv], [ender]
+        if (text.equals("[item]", true) || text.equals("[inv]", true) || text.equals("[ender]", true)) {
+            val player = Bukkit.getPlayerExact(playerName)
+            if (player != null) {
+                when {
+                    text.equals("[item]", true) -> {
+                        val item = player.inventory.itemInMainHand
+                        if (item.type != Material.AIR) {
+                            val renderer = ItemRenderer()
+                            val imageBytes = renderer.renderItem(item)
+                            val itemName = item.type.name
+                            tgBot.sendPhotoToTelegram(imageBytes, "$playerName: $itemName")
+                        }
+                    }
+                    text.equals("[inv]", true) -> {
+                        val renderer = InventoryRenderer()
+                        val imageBytes = renderer.renderInventory(player.inventory)
+                        tgBot.sendPhotoToTelegram(imageBytes, "$playerName: Инвентарь")
+                    }
+                    text.equals("[ender]", true) -> {
+                        val renderer = EnderChestRenderer()
+                        val imageBytes = renderer.renderEnderChest(player.enderChest)
+                        tgBot.sendPhotoToTelegram(imageBytes, "$playerName: Эндер-сундук")
+                    }
+                }
+                return
+            }
+        }
+
         if (conf.mainChannelChatEnabled && conf.chatTelegramToMinecraftEnabled) {
             // Получаем связанный игровой ник, если пользователь зарегистрирован
             val playerName = mgr.getPlayerByTelegramId(userId.toString()) ?: username
