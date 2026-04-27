@@ -5185,16 +5185,27 @@ $topList
     }
     
     fun editImageWithKeyboard(chatId: Long, messageId: Int, imageIndex: Int, imageDirectory: File, hash: String) {
-        val imageFile = File(imageDirectory, "page$imageIndex.png")
-        val totalPages = imageDirectory.listFiles { file -> file.name.endsWith(".png") }?.size ?: 1
-        
-        val isFirstPage = imageIndex == 1
-        val isLastPage = imageIndex == totalPages
-        
-        val imageBytes = imageFile.readBytes()
-        val keyboardJson = createInlineKeyboardJson("prev_$imageIndex-$hash", "next_$imageIndex-$hash", isFirstPage, isLastPage)
-        
-        editMessagePhoto(chatId.toString(), messageId, imageBytes, keyboardJson)
+        try {
+            val imageFile = File(imageDirectory, "page$imageIndex.png")
+            if (!imageFile.exists()) {
+                plugin.logger.warning("Book page not found: ${imageFile.absolutePath}")
+                return
+            }
+            val imageBytes = imageFile.readBytes()
+            val totalPages = imageDirectory.listFiles { file -> file.name.endsWith(".png") }?.size ?: 1
+
+            val isFirstPage = imageIndex == 1
+            val isLastPage = imageIndex == totalPages
+
+            val keyboardJson = createInlineKeyboardJson("prev_$imageIndex-$hash", "next_$imageIndex-$hash", isFirstPage, isLastPage)
+
+            // Удаляем старое сообщение
+            deleteMessage(chatId.toString(), messageId)
+            // Отправляем новое с той же клавиатурой
+            sendPhotoWithKeyboard(chatId.toString(), imageBytes, null, keyboardJson)
+        } catch (e: Exception) {
+            plugin.logger.warning("Failed to edit book page: ${e.message}")
+        }
     }
     
     private fun sendPhotoWithKeyboard(chatId: String, imageBytes: ByteArray, caption: String?, replyMarkupJson: String) {
