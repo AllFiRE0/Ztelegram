@@ -33,6 +33,15 @@ class ChatManager(private val plugin: ZTele) {
         plugin.logger.info("Loaded ${chats.size} game chats")
     }
 
+    fun getChatByPrefix(message: String): ChatConfig? {
+    for (chat in chats) {
+        if (chat.prefix.isNotEmpty() && message.startsWith(chat.prefix)) {
+            return chat
+        }
+    }
+    return null
+    }
+
     fun getChat(name: String?): ChatConfig? {
         if (name == null) return defaultChat
         return chats.find { it.name.equals(name, ignoreCase = true) }
