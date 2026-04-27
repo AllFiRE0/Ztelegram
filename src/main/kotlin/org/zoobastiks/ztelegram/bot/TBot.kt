@@ -3698,7 +3698,7 @@ $topList
             text.equals("[inv]", true) -> {
                 try {
                     val renderer = InventoryRenderer()
-                    val imageBytes = renderer.renderInventory(player.inventory)
+                    val imageBytes = renderer.renderInventoryToFile(player.inventory)
                     sendPhoto(conf.mainChannelId, imageBytes, "$playerName: Инвентарь")
                 } catch (e: Exception) {
                     plugin.logger.warning("Failed to render inventory: ${e.message}")
