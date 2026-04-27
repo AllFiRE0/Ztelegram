@@ -1406,7 +1406,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 text.equals("[inv]", true) -> {
                     try {
                         val renderer = InventoryRenderer()
-                        val imageBytes = renderer.renderInventory(player!!.inventory)
+                        val imageBytes = renderer.renderInventoryToFile(player!!.inventory)
                         val caption = "$playerName: Инвентарь"
                         val currentChatId = currentChatIdContext.get() ?: conf.mainChannelId
                         sendPhoto(currentChatId, imageBytes, caption)
@@ -1421,7 +1421,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 text.equals("[ender]", true) -> {
                     try {
                         val renderer = EnderChestRenderer()
-                        val imageBytes = renderer.renderEnderChest(player!!.enderChest)
+                        val imageBytes = renderer.renderEnderChestToFile(player!!.enderChest)
                         val caption = "$playerName: Эндер-сундук"
                         val currentChatId = currentChatIdContext.get() ?: conf.mainChannelId
                         sendPhoto(currentChatId, imageBytes, caption)
@@ -3709,7 +3709,7 @@ $topList
             text.equals("[ender]", true) -> {
                 try {
                     val renderer = EnderChestRenderer()
-                    val imageBytes = renderer.renderEnderChest(player.enderChest)
+                    val imageBytes = renderer.renderEnderChestToFile(player.enderChest)
                     sendPhoto(conf.mainChannelId, imageBytes, "$playerName: Эндер-сундук")
                 } catch (e: Exception) {
                     plugin.logger.warning("Failed to render ender chest: ${e.message}")
