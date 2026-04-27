@@ -1,6 +1,7 @@
 package org.zoobastiks.ztelegram.bot
 
 import net.kyori.adventure.text.Component
+import org.bukkit.Material
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
