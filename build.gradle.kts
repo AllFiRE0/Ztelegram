@@ -17,6 +17,7 @@ version = "1.7"
 repositories {
     mavenCentral()
     maven("https://repo.papermc.io/repository/maven-public/")
+    maven("https://repo.brikster.dev/releases")
     maven("https://oss.sonatype.org/content/repositories/snapshots/")
     maven("https://jitpack.io")
     maven("https://repo.extendedclip.com/content/repositories/placeholderapi/")
@@ -38,6 +39,7 @@ dependencies {
         exclude(group = "org.bukkit", module = "bukkit")
     }
     compileOnly("me.clip:placeholderapi:2.11.6")
+    compileOnly("ru.brikster.chatty:chatty-api:3.0.0")
 }
 
 tasks {
