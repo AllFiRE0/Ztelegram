@@ -13,9 +13,7 @@ class ChattyListener(private val plugin: ZTele) : Listener {
     
     @EventHandler
     fun onChattyMessage(e: ChattyMessageEvent) {
-        if (e.isCancelled) return
-        
-        val player = Bukkit.getPlayer(e.sender.uuid) ?: return
+        val player = e.sender ?: return
         val playerName = player.name
         val message = e.plainMessage
         val chatId = e.chat.id
