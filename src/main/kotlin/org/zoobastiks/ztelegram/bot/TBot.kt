@@ -1017,7 +1017,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             if (!message.hasText()) return
 
             val chatId = message.chatId.toString()
-            val text = message.text
+            val text = message.text.replace("@${botUsername.lowercase()}", "").replace("@${botUsername}", "").trim()
             val username = message.from.userName ?: message.from.firstName
             val userId = message.from.id
 
