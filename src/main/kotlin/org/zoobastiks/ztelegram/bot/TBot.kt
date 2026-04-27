@@ -1434,20 +1434,34 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
         if (conf.mainChannelChatEnabled && conf.chatTelegramToMinecraftEnabled) {
             // Получаем связанный игровой ник, если пользователь зарегистрирован
             val playerName = mgr.getPlayerByTelegramId(userId.toString()) ?: username
-
-            val context = PlaceholderEngine.createCustomContext(mapOf(
-                "username" to playerName,
-                "message" to text
-            ))
-            val formattedMessage = PlaceholderEngine.process(conf.chatTelegramToMinecraftFormat, context)
-                .replace("\\n", "\n")
-
-        // Отправка в игровой чат если включено
-        if (ZTele.conf.gameChatsEnabled && ZTele.conf.gameChatsMinecraftToTelegram) {
-            ZTele.chatManager.handleGameChatMessage(playerName, text, username)
-        }
-            // Отправляем сообщение на сервер с поддержкой градиентов и цветов
-            sendFormattedMessageToServer(formattedMessage)
+            
+            // Определяем, в какой чат отправлять (по chatId откуда пришло сообщение)
+            val currentChatId = currentChatIdContext.get() ?: conf.mainChannelId
+            val (baseChatId, topicId) = parseChatId(currentChatId)
+            
+            // Ищем чат в game_chats по chatId и topicId
+            var targetChat = ZTele.chatManager.getChats().find { 
+                it.chatId.toString() == baseChatId && it.topicId == (topicId ?: 0)
+            }
+            
+            if (targetChat == null && conf.gameChatsEnabled) {
+                // Если не нашли - берем дефолтный
+                targetChat = ZTele.chatManager.getDefaultChat()
+            }
+            
+            if (targetChat != null && targetChat.enabled) {
+                // Отправляем в правильный игровой чат через ChatManager
+                ZTele.chatManager.sendToGame(targetChat, playerName, text)
+            } else {
+                // Fallback на старую систему
+                val context = PlaceholderEngine.createCustomContext(mapOf(
+                    "username" to playerName,
+                    "message" to text
+                ))
+                val formattedMessage = PlaceholderEngine.process(conf.chatTelegramToMinecraftFormat, context)
+                    .replace("\\n", "\n")
+                sendFormattedMessageToServer(formattedMessage)
+            }
         }
     }
 
