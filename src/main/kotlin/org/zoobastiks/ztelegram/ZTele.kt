@@ -159,6 +159,11 @@ class ZTele : JavaPlugin() {
             }
         }
 
+		if (server.pluginManager.isPluginEnabled("PlaceholderAPI")) {
+            TGBridgeExpansion().register()
+            logger.info("PlaceholderAPI expansion registered!")
+        }
+
         registerCommands()
         registerListeners()
         startBot()
@@ -484,12 +489,6 @@ class ZTele : JavaPlugin() {
                 menuManager = TelegramMenuManager(bot, this)
                 registerMenuManager = org.zoobastiks.ztelegram.menu.RegisterMenuManager(bot, this)
                 paymentManager = org.zoobastiks.ztelegram.mgr.PaymentManager(this)
-
-                // Регистрируем PlaceholderAPI
-                if (server.pluginManager.isPluginEnabled("PlaceholderAPI")) {
-                    TGBridgeExpansion().register()
-                    logger.info("PlaceholderAPI expansion registered!")
-                }
 
                 // Планируем автоматические уведомления
                 bot.scheduleAutoNotifications()
