@@ -2057,6 +2057,20 @@ backup:
 # ═══════════════════════════════════════════════════════════════════════════════
 
 events:
+  # Достижения
+  advancements:
+    enabled: false
+    send_image: false
+    task:
+      enabled: false
+      format: "✨ **%player%** получил достижение **%advancement%**\n_%description%_"
+    goal:
+      enabled: false
+      format: "🎯 **%player%** выполнил цель **%advancement%**\n_%description%_"
+    challenge:
+      enabled: false
+      format: "🔥 **%player%** завершил испытание **%advancement%**\n_%description%_"
+
   # 🚀 Запуск сервера
   server-start:
     enabled: false
