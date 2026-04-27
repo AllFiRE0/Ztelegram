@@ -1,6 +1,9 @@
 package org.zoobastiks.ztelegram.bot
 
 import net.kyori.adventure.text.Component
+import org.zoobastiks.ztelegram.renderer.ItemRenderer
+import org.zoobastiks.ztelegram.renderer.InventoryRenderer
+import org.zoobastiks.ztelegram.renderer.EnderChestRenderer
 import org.bukkit.Material
 import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
 import org.telegram.telegrambots.meta.api.objects.InputFile
