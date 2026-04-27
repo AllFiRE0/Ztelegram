@@ -27,7 +27,8 @@ object ChatFormatter {
 
     fun formatMinecraftMessageFromTG(format: String, username: String, message: String): Component {
         val result = format
-            .replace("<sender>", username)   // ← ИСПРАВЛЕНО
+            .replace("<sender>", username)
+            .replace("<username>", username)   // ← добавил поддержку <username>
             .replace("<text>", message)
         return try {
             miniMessage.deserialize(result)
