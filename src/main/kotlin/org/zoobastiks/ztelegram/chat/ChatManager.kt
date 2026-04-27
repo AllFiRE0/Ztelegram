@@ -80,4 +80,6 @@ class ChatManager(private val plugin: ZTele) {
         val defaultChat = defaultChat ?: return
         sendToTelegram(defaultChat, sender, message)
     }
+
+    fun getChats(): List<ChatConfig> = chats.toList()
 }
