@@ -2371,46 +2371,46 @@ $topList
                 // Админская отвязка (с аргументом)
                 if (arguments.isNotEmpty()) {
                     if (!isAdmin) {
-                        sendAutoDeleteMessage(chatId, conf.msgUnregAdminOnly, conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(unregChatId, conf.msgUnregAdminOnly, conf.commandsAutoDeleteSeconds)
                         return
                     }
                     if (!conf.allowAdminUnreg) {
-                        sendAutoDeleteMessage(chatId, conf.msgUnregAdminDisabled, conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(unregChatId, conf.msgUnregAdminDisabled, conf.commandsAutoDeleteSeconds)
                         return
                     }
                     val targetPlayer = arguments.split(" ")[0]
                     if (!mgr.isPlayerRegistered(targetPlayer)) {
-                        sendAutoDeleteMessage(chatId, conf.unregCommandNotRegistered.replace("%player%", targetPlayer), conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(unregChatId, conf.unregCommandNotRegistered.replace("%player%", targetPlayer), conf.commandsAutoDeleteSeconds)
                         return
                     }
                     if (mgr.unregisterPlayer(targetPlayer)) {
-                        sendAutoDeleteMessage(chatId, conf.unregCommandSuccess.replace("%player%", targetPlayer), conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(unregChatId, conf.unregCommandSuccess.replace("%player%", targetPlayer), conf.commandsAutoDeleteSeconds)
                     }
                     return
                 }
 
                 // Игрок пытается отвязать себя
                 if (!conf.allowPlayerUnreg) {
-                    sendAutoDeleteMessage(chatId, conf.unregPlayerDisabledMessage, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(unregChatId, conf.unregPlayerDisabledMessage, conf.commandsAutoDeleteSeconds)
                     return
                 }
 
                 val currentPlayer = mgr.getPlayerByTelegramId(userId.toString())
                 if (currentPlayer == null) {
-                    sendAutoDeleteMessage(chatId, conf.msgUnregNotRegistered, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(unregChatId, conf.msgUnregNotRegistered, conf.commandsAutoDeleteSeconds)
                     return
                 }
 
                 if (!ZTele.unregCooldowns.canUnregister(userId)) {
                     val time = ZTele.unregCooldowns.getRemainingTime(userId)
-                    sendAutoDeleteMessage(chatId, conf.unregCommandCooldown.replace("%time%", time), conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(unregChatId, conf.unregCommandCooldown.replace("%time%", time), conf.commandsAutoDeleteSeconds)
                     return
                 }
 
                 try {
                     ZTele.registerMenuManager.showUnregisterConfirm(chatId, null, userId)
                 } catch (e: Exception) {
-                    sendAutoDeleteMessage(chatId, conf.msgUnregConfirmInMenu, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(unregChatId, conf.msgUnregConfirmInMenu, conf.commandsAutoDeleteSeconds)
                 }
             }
 
