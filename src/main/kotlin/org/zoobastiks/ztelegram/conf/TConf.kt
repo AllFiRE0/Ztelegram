@@ -849,8 +849,7 @@ class TConf(private val plugin: ZTele) {
             plugin.logger.info("🔧 [TConf] Количество администраторов: ${administratorIds.size}")
             plugin.logger.info("🔧 [TConf] Сырые данные из config: ${conf.get("administrators.telegram_ids")}")
         }
-
-
+        
         // Command settings - unreg
         enabledUnregCommand = conf.getBoolean("commands.unreg.enabled", true)
         unregCommandUsage = conf.getString("commands.unreg.usage", unregCommandUsage) ?: unregCommandUsage
