@@ -36,6 +36,7 @@ class TConf(private val plugin: ZTele) {
     
     // Database settings
     var databaseEnabled: Boolean = true // Включить SQLite базу данных вместо YAML файлов
+    var botUsername: String = "YourTelegramBot"
 
     var checkinResetSuccess: String = "§aОчки чекина для игрока §e%player% §aсброшены!"
     var checkinResetNotFound: String = "§cИгрок §e%player% §cне найден в базе чекинов!"
@@ -805,6 +806,7 @@ class TConf(private val plugin: ZTele) {
 
         // Bot settings
         botToken = conf.getString("bot.token", "") ?: ""
+        botUsername = conf.getString("bot.username", "YourTelegramBot") ?: "YourTelegramBot"
 
         // Channel IDs
         mainChannelId = conf.getString("channels.main", "-1002111043217") ?: "-1002111043217"
