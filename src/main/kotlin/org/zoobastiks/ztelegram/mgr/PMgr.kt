@@ -708,6 +708,7 @@ class PMgr(private val plugin: ZTele) {
         val telegramId: String,
         val registered: String? = null,
         val gender: String? = null,
-        val unlinked: Boolean = false
+        val unlinked: Boolean = false,
+        val rewardClaimed: Boolean = false
     )
 }
