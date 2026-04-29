@@ -2326,57 +2326,49 @@ $topList
                 val isAdmin = conf.isAdministrator(userId)
                 val chatId = getTargetChatId(conf.registerChannelId)
 
-                // Если команда с аргументом - это админская команда
+                // Админская отвязка (с аргументом)
                 if (arguments.isNotEmpty()) {
                     if (!isAdmin) {
-                        sendAutoDeleteMessage(chatId, "❌ Только администраторы могут использовать команду `/unreg <никнейм>`", conf.commandsAutoDeleteSeconds)
-                    return
-                }
-
-                val targetPlayer = arguments.split(" ")[0]
-
-                // Проверяем, зарегистрирован ли игрок
-                if (!mgr.isPlayerRegistered(targetPlayer)) {
-                    val context = PlaceholderEngine.createCustomContext(mapOf("player" to targetPlayer))
-                    val message = PlaceholderEngine.process(conf.unregCommandNotRegistered, context)
-                        sendAutoDeleteMessage(chatId, message, conf.commandsAutoDeleteSeconds)
-                    return
-                }
-
-                // Снимаем регистрацию
-                if (mgr.unregisterPlayer(targetPlayer)) {
-                    val context = PlaceholderEngine.createCustomContext(mapOf("player" to targetPlayer))
-                    val message = PlaceholderEngine.process(conf.unregCommandSuccess, context)
-                        sendAutoDeleteMessage(chatId, message, conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(chatId, "❌ Только администраторы", conf.commandsAutoDeleteSeconds)
+                        return
+                    }
+                    if (!conf.allowAdminUnreg) {
+                        sendAutoDeleteMessage(chatId, "❌ Отвязка через админа отключена", conf.commandsAutoDeleteSeconds)
+                        return
+                    }
+                    val targetPlayer = arguments.split(" ")[0]
+                    if (!mgr.isPlayerRegistered(targetPlayer)) {
+                        sendAutoDeleteMessage(chatId, conf.unregCommandNotRegistered.replace("%player%", targetPlayer), conf.commandsAutoDeleteSeconds)
+                        return
+                    }
+                    if (mgr.unregisterPlayer(targetPlayer)) {
+                        sendAutoDeleteMessage(chatId, conf.unregCommandSuccess.replace("%player%", targetPlayer), conf.commandsAutoDeleteSeconds)
                     }
                     return
                 }
 
-                // Если команда без аргументов - показываем меню подтверждения для обычных игроков
+                // Игрок пытается отвязать себя
+                if (!conf.allowPlayerUnreg) {
+                    sendAutoDeleteMessage(chatId, conf.unregPlayerDisabledMessage, conf.commandsAutoDeleteSeconds)
+                    return
+                }
+
                 val currentPlayer = mgr.getPlayerByTelegramId(userId.toString())
                 if (currentPlayer == null) {
                     sendAutoDeleteMessage(chatId, "❌ Вы не зарегистрированы.", conf.commandsAutoDeleteSeconds)
                     return
                 }
 
-                // Проверяем кулдаун для обычных пользователей
                 if (!ZTele.unregCooldowns.canUnregister(userId)) {
-                    val remainingTime = ZTele.unregCooldowns.getRemainingTime(userId)
-                    val context = PlaceholderEngine.createCustomContext(mapOf("time" to remainingTime))
-                    val message = PlaceholderEngine.process(conf.unregCommandCooldown, context)
-                    sendAutoDeleteMessage(chatId, message, conf.commandsAutoDeleteSeconds)
+                    val time = ZTele.unregCooldowns.getRemainingTime(userId)
+                    sendAutoDeleteMessage(chatId, conf.unregCommandCooldown.replace("%time%", time), conf.commandsAutoDeleteSeconds)
                     return
                 }
 
-                // Показываем меню подтверждения через RegisterMenuManager
                 try {
                     ZTele.registerMenuManager.showUnregisterConfirm(chatId, null, userId)
                 } catch (e: Exception) {
-                    // Если меню не может быть отправлено, отправляем текстовое сообщение
-                    val message = "⚠️ **ПОДТВЕРЖДЕНИЕ ОТМЕНЫ РЕГИСТРАЦИИ**\n\n" +
-                            "Вы действительно хотите отменить регистрацию для игрока `$currentPlayer`?\n\n" +
-                            "Используйте меню регистрации для подтверждения."
-                    sendAutoDeleteMessage(chatId, message, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(chatId, "⚠️ Подтвердите отмену регистрации в меню", conf.commandsAutoDeleteSeconds)
                 }
             }
 
@@ -3508,10 +3500,15 @@ $topList
         // Проверяем, что пользователь не зарегистрирован
         val existingPlayer = mgr.getPlayerByTelegramId(user.id.toString())
         if (existingPlayer != null) {
-            sendMessage(
-                chatId,
-                processPlaceholders(conf.registerUserAlreadyRegistered, mapOf("player" to existingPlayer))
-            )
+        // Если команда - обрабатываем
+            if (originalText.startsWith("/")) {
+                val commandParts = originalText.split(" ", limit = 2)
+                val command = commandParts[0].substring(1).lowercase()
+                val arguments = if (commandParts.size > 1) commandParts[1] else ""
+                val username = user.userName ?: user.firstName
+                executeCommand(command, arguments, username, user.id, "register")
+            }
+        // Не спамим — молча выходим
             return
         }
 
