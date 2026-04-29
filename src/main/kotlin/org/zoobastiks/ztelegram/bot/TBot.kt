@@ -3615,6 +3615,10 @@ $topList
 
     // Выполняет команды награды за регистрацию
     private fun executeRewardCommands(playerName: String) {
+        if (mgr.isRewardClaimed(playerName)) {
+            return
+        }
+        
         if (conf.registerRewardCommands.isEmpty()) {
             if (conf.debugEnabled) plugin.logger.warning("No reward commands configured for registration.")
             return
@@ -3651,6 +3655,7 @@ $topList
                 e.printStackTrace()
             }
         }
+        mgr.markRewardClaimed(playerName)
     }
 
     // Отправляет отформатированное сообщение игроку
