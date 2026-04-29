@@ -342,6 +342,23 @@ class RegisterMenuManager(
      * Показывает подтверждение отмены регистрации
      */
     fun showUnregisterConfirm(chatId: String, messageId: Int?, userId: Long) {
+        // Проверяем, разрешена ли отвязка
+        if (!conf.allowPlayerUnreg && !conf.isAdministrator(userId)) {
+            val keyboard = InlineKeyboardMarkup()
+            keyboard.keyboard = listOf(listOf(
+                InlineKeyboardButton().apply {
+                    text = "🔙 Назад"
+                    callbackData = CallbackData.REGISTER_MENU.withUserId(userId)
+                }
+            ))
+            if (messageId != null) {
+            bot.editMenuMessage(chatId, messageId, conf.unregPlayerDisabledMessage, keyboard)
+            } else {
+                bot.sendMenuMessage(chatId, conf.unregPlayerDisabledMessage, keyboard)
+            }
+            return
+        }
+        
         val registeredPlayerName = ZTele.mgr.getPlayerByTelegramId(userId.toString())
         
         val message = buildString {
