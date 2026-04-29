@@ -3783,7 +3783,7 @@ $topList
                 try {
                     val renderer = InventoryRenderer()
                     val imageBytes = renderer.renderInventoryToFile(player.inventory)
-                    sendPhoto(conf.mainChannelId, imageBytes, "$playerName: Инвентарь")
+                    sendPhoto(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), imageBytes, "$playerName: Инвентарь")
                 } catch (e: Exception) {
                     plugin.logger.warning("Failed to render inventory: ${e.message}")
                     sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), conf.msgRendererFailedInventory, conf.commandsAutoDeleteSeconds)
@@ -3794,7 +3794,7 @@ $topList
                 try {
                     val renderer = EnderChestRenderer()
                     val imageBytes = renderer.renderEnderChestToFile(player.enderChest)
-                    sendPhoto(conf.mainChannelId, imageBytes, "$playerName: Эндер-сундук")
+                    sendPhoto(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), imageBytes, "$playerName: Эндер-сундук")
                 } catch (e: Exception) {
                     plugin.logger.warning("Failed to render ender chest: ${e.message}")
                     sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), conf.msgRendererFailedEnderChest, conf.commandsAutoDeleteSeconds)
