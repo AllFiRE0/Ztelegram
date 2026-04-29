@@ -3499,6 +3499,9 @@ $topList
             plugin.logger.info("📤 Register reply will be sent to chatId: $chatId (configured: ${conf.registerChannelId})")
         }
 
+        // Определяем чат для ответов на команды
+        val responseChatId = getResponseChatId(currentChatIdContext.get() ?: chatId)
+
         // Используем originalText для сохранения оригинального написания ника
         val originalText = messageText.trim()
 
@@ -3519,7 +3522,22 @@ $topList
                 return
             }
 
-            executeCommand(command, arguments, username, user.id, "register", chatId)
+            executeCommand(command, arguments, username, user.id, "register", responseChatId)
+            return
+        }
+
+        // Проверяем, что пользователь не зарегистрирован
+        val existingPlayer = mgr.getPlayerByTelegramId(user.id.toString())
+        if (existingPlayer != null) {
+        // Если команда - обрабатываем
+            if (originalText.startsWith("/")) {
+                val commandParts = originalText.split(" ", limit = 2)
+                val command = commandParts[0].substring(1).lowercase()
+                val arguments = if (commandParts.size > 1) commandParts[1] else ""
+                val username = user.userName ?: user.firstName
+                executeCommand(command, arguments, username, user.id, "register", responseChatId)
+            }
+        // Не спамим — молча выходим
             return
         }
 
