@@ -48,6 +48,10 @@ class TConf(private val plugin: ZTele) {
     var unregCommandCooldown: String = "⏰ Вы можете отменить регистрацию только раз в 12 часов. Осталось: %time%"
     var unregCommandNoPermission: String = "\n\nВам эта команда\nНе доступна\n\nДля получения списка команд\nИспользуйте /help\n"
     var unregCommandCooldownHours: Int = 12
+    var allowPlayerUnreg: Boolean = false
+    var allowAdminUnreg: Boolean = true
+    var unregPlayerDisabledMessage: String = "❌ Отвязка запрещена"
+    var unregAlreadyUnlinkedMessage: String = "❌ Уже отвязан"
 
     // Command settings - list
     var enabledListCommand: Boolean = true
@@ -828,6 +832,10 @@ class TConf(private val plugin: ZTele) {
         unregCommandCooldown = conf.getString("commands.unreg.cooldown", unregCommandCooldown) ?: unregCommandCooldown
         unregCommandNoPermission = conf.getString("commands.unreg.no_permission", unregCommandNoPermission) ?: unregCommandNoPermission
         unregCommandCooldownHours = conf.getInt("commands.unreg.cooldown_hours", 12)
+        allowPlayerUnreg = conf.getBoolean("commands.unreg.allow-player-unreg", false)
+        allowAdminUnreg = conf.getBoolean("commands.unreg.allow-admin-unreg", true)
+        unregPlayerDisabledMessage = conf.getString("commands.unreg.player-unreg-disabled", unregPlayerDisabledMessage) ?: unregPlayerDisabledMessage
+        unregAlreadyUnlinkedMessage = conf.getString("commands.unreg.already-unlinked", unregAlreadyUnlinkedMessage) ?: unregAlreadyUnlinkedMessage
 
         // Command settings - list
         enabledListCommand = conf.getBoolean("commands.list.enabled", true)
