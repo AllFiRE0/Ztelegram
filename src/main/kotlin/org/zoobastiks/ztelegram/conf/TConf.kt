@@ -863,6 +863,33 @@ class TConf(private val plugin: ZTele) {
         allowAdminUnreg = conf.getBoolean("commands.unreg.allow-admin-unreg", true)
         unregPlayerDisabledMessage = conf.getString("commands.unreg.player-unreg-disabled", unregPlayerDisabledMessage) ?: unregPlayerDisabledMessage
         unregAlreadyUnlinkedMessage = conf.getString("commands.unreg.already-unlinked", unregAlreadyUnlinkedMessage) ?: unregAlreadyUnlinkedMessage
+        
+        // Системные сообщения команд
+        msgCheckinNoPermission = conf.getString("commands.messages.checkin.no-permission", msgCheckinNoPermission) ?: msgCheckinNoPermission
+        msgCheckinNotRegistered = conf.getString("commands.messages.checkin.not-registered", msgCheckinNotRegistered) ?: msgCheckinNotRegistered
+        msgCheckinResetUsage = conf.getString("commands.messages.checkin.reset-usage", msgCheckinResetUsage) ?: msgCheckinResetUsage
+        msgAdminNoPermission = conf.getString("commands.messages.admin.no-permission", msgAdminNoPermission) ?: msgAdminNoPermission
+        msgAdminWrongChannel = conf.getString("commands.messages.admin.wrong-channel", msgAdminWrongChannel) ?: msgAdminWrongChannel
+        msgAdminUnknown = conf.getString("commands.messages.admin.unknown", msgAdminUnknown) ?: msgAdminUnknown
+        msgRestartNoActiveTimer = conf.getString("commands.messages.restart.no-active-timer", msgRestartNoActiveTimer) ?: msgRestartNoActiveTimer
+        msgRestartScheduleError = conf.getString("commands.messages.restart.schedule-error", msgRestartScheduleError) ?: msgRestartScheduleError
+        msgUnregAdminOnly = conf.getString("commands.messages.unreg.admin-only", msgUnregAdminOnly) ?: msgUnregAdminOnly
+        msgUnregAdminDisabled = conf.getString("commands.messages.unreg.admin-disabled", msgUnregAdminDisabled) ?: msgUnregAdminDisabled
+        msgUnregNotRegistered = conf.getString("commands.messages.unreg.not-registered", msgUnregNotRegistered) ?: msgUnregNotRegistered
+        msgUnregConfirmInMenu = conf.getString("commands.messages.unreg.confirm-in-menu", msgUnregConfirmInMenu) ?: msgUnregConfirmInMenu
+        msgMenuNotReady = conf.getString("commands.messages.menu.not-ready", msgMenuNotReady) ?: msgMenuNotReady
+        msgUnknownCommand = conf.getString("commands.messages.unknown-command", msgUnknownCommand) ?: msgUnknownCommand
+        msgRepNotRegistered = conf.getString("commands.messages.reputation.not-registered", msgRepNotRegistered) ?: msgRepNotRegistered
+        msgRepPlayerNotFound = conf.getString("commands.messages.reputation.player-not-found", msgRepPlayerNotFound) ?: msgRepPlayerNotFound
+        msgRepTargetNotRegistered = conf.getString("commands.messages.reputation.target-not-registered", msgRepTargetNotRegistered) ?: msgRepTargetNotRegistered
+        msgRepTopEmpty = conf.getString("commands.messages.reputation.top-empty", msgRepTopEmpty) ?: msgRepTopEmpty
+        msgRepRecentEmpty = conf.getString("commands.messages.reputation.recent-empty", msgRepRecentEmpty) ?: msgRepRecentEmpty
+        msgRendererPlayerNotFound = conf.getString("commands.messages.renderer.player-not-found", msgRendererPlayerNotFound) ?: msgRendererPlayerNotFound
+        msgRendererPlayerOffline = conf.getString("commands.messages.renderer.player-offline", msgRendererPlayerOffline) ?: msgRendererPlayerOffline
+        msgRendererNoItem = conf.getString("commands.messages.renderer.no-item-in-hand", msgRendererNoItem) ?: msgRendererNoItem
+        msgRendererFailedItem = conf.getString("commands.messages.renderer.render-failed-item", msgRendererFailedItem) ?: msgRendererFailedItem
+        msgRendererFailedInventory = conf.getString("commands.messages.renderer.render-failed-inventory", msgRendererFailedInventory) ?: msgRendererFailedInventory
+        msgRendererFailedEnderChest = conf.getString("commands.messages.renderer.render-failed-enderchest", msgRendererFailedEnderChest) ?: msgRendererFailedEnderChest
 
         // Command settings - list
         enabledListCommand = conf.getBoolean("commands.list.enabled", true)
