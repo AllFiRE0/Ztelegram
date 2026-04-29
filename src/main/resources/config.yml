@@ -50,6 +50,7 @@ database:
 bot:
   # 🔑 Токен бота (получить у @BotFather)
   token: ""
+  username: "BotName" # Укажите имя вашего телеграм бота, например @ServerBot
 
 # 🔄 Мониторинг подключения
 telegram:
