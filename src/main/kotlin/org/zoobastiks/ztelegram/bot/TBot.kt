@@ -2408,7 +2408,7 @@ $topList
                 }
 
                 try {
-                    ZTele.registerMenuManager.showUnregisterConfirm(chatId, null, userId)
+                    ZTele.registerMenuManager.showUnregisterConfirm(unregChatId, null, userId)
                 } catch (e: Exception) {
                     sendAutoDeleteMessage(unregChatId, conf.msgUnregConfirmInMenu, conf.commandsAutoDeleteSeconds)
                 }
