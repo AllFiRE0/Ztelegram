@@ -953,6 +953,43 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
         return "main" // По умолчанию основной канал
     }
 
+        /**
+     * Определяет, в какой чат отправлять ответ на команду.
+     * Если сообщение пришло из game_chat — ответ идёт туда же.
+     * Иначе используется старая логика channels.
+     */
+    private fun getResponseChatId(fromChatId: String): String {
+        // 1. Проверяем game_chats
+        val (baseChatId, topicId) = parseChatId(fromChatId)
+        val gameChat = ZTele.chatManager.getChatByTelegramId(
+            baseChatId.toLongOrNull() ?: 0,
+            topicId ?: 0
+        )
+        
+        if (gameChat != null) {
+            // Ответ в тот же чат, откуда пришла команда
+            return if (gameChat.topicId > 0) {
+                "${gameChat.chatId}_${gameChat.topicId}"
+            } else {
+                gameChat.chatId.toString()
+            }
+        }
+        
+        // 2. Старая логика channels
+        return when {
+            conf.registerChannelId.isNotEmpty() && isChannelMatch(fromChatId, conf.registerChannelId) ->
+                getTargetChatId(conf.registerChannelId)
+            conf.consoleChannelId.isNotEmpty() && isChannelMatch(fromChatId, conf.consoleChannelId) ->
+                getTargetChatId(conf.consoleChannelId)
+            conf.gameChannelId.isNotEmpty() && isChannelMatch(fromChatId, conf.gameChannelId) ->
+                getTargetChatId(conf.gameChannelId)
+            conf.statisticsChannelId.isNotEmpty() && isChannelMatch(fromChatId, conf.statisticsChannelId) ->
+                getTargetChatId(conf.statisticsChannelId)
+            else ->
+                getTargetChatId(conf.mainChannelId)
+        }
+    }
+
     /**
      * Проверяет, разрешена ли команда в данном канале
      */
