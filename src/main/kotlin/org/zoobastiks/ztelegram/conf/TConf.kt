@@ -615,6 +615,33 @@ class TConf(private val plugin: ZTele) {
     var pluginBlacklistOnSuccess: String = "✅ Черный список Telegram включен"
     var pluginBlacklistOffSuccess: String = "✅ Черный список Telegram отключен"
 
+    // Системные сообщения команд
+    var msgCheckinNoPermission: String = "❌ У вас нет прав для сброса очков чекина!"
+    var msgCheckinNotRegistered: String = "❌ Вы не зарегистрированы!"
+    var msgCheckinResetUsage: String = "❌ Использование: /checkinreset <никнейм>"
+    var msgAdminNoPermission: String = "❌ Укажите команду: /admin [top|topbal]"
+    var msgAdminWrongChannel: String = "❌ Команда доступна только в канале статистики!"
+    var msgAdminUnknown: String = "❌ Неизвестная команда: /admin %subcommand%\nДоступны: top, topbal"
+    var msgRestartNoActiveTimer: String = "❌ Нет активных таймеров рестарта"
+    var msgRestartScheduleError: String = "❌ Ошибка при планировании рестарта"
+    var msgUnregAdminOnly: String = "❌ Только администраторы"
+    var msgUnregAdminDisabled: String = "❌ Отвязка через админа отключена"
+    var msgUnregNotRegistered: String = "❌ Вы не зарегистрированы."
+    var msgUnregConfirmInMenu: String = "⚠️ Подтвердите отмену регистрации в меню"
+    var msgMenuNotReady: String = "⏳ Меню еще не готово. Подождите немного..."
+    var msgUnknownCommand: String = "❌ **Неизвестная команда**\nИспользуйте `/help` для списка команд"
+    var msgRepNotRegistered: String = "❌ Вы не зарегистрированы в игре!\nИспользуйте канал регистрации для привязки аккаунта."
+    var msgRepPlayerNotFound: String = "❌ Игрок **%player%** не найден!"
+    var msgRepTargetNotRegistered: String = "❌ Пользователь %target% не зарегистрирован в игре!"
+    var msgRepTopEmpty: String = "📊 **Топ по репутации пуст**\nПока никто не получил репутацию!"
+    var msgRepRecentEmpty: String = "📜 **Нет недавних изменений**\nПока никто не получил репутацию!"
+    var msgRendererPlayerNotFound: String = "❌ Игрок с ником \"%player%\" не найден на сервере!"
+    var msgRendererPlayerOffline: String = "❌ Игрок %player% не в сети!"
+    var msgRendererNoItem: String = "❌ У вас нет предмета в руке!"
+    var msgRendererFailedItem: String = "❌ Не удалось отрендерить предмет"
+    var msgRendererFailedInventory: String = "❌ Не удалось отрендерить инвентарь"
+    var msgRendererFailedEnderChest: String = "❌ Не удалось отрендерить эндер-сундук"
+
     // Help команда
     var pluginHelpMessage: String = """
         📋 Доступные команды для консольного канала:
