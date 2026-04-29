@@ -3541,21 +3541,6 @@ $topList
             return
         }
 
-        // Проверяем, что пользователь не зарегистрирован
-        val existingPlayer = mgr.getPlayerByTelegramId(user.id.toString())
-        if (existingPlayer != null) {
-        // Если команда - обрабатываем
-            if (originalText.startsWith("/")) {
-                val commandParts = originalText.split(" ", limit = 2)
-                val command = commandParts[0].substring(1).lowercase()
-                val arguments = if (commandParts.size > 1) commandParts[1] else ""
-                val username = user.userName ?: user.firstName
-                executeCommand(command, arguments, username, user.id, "register", chatId)
-            }
-        // Не спамим — молча выходим
-            return
-        }
-
         // ПРИОРИТЕТ 1: Сначала пытаемся зарегистрировать как никнейм игрока
         // Проверяем валидность никнейма (длина 3-16, буквы, цифры, подчеркивание)
         if (isValidMinecraftUsername(originalText)) {
