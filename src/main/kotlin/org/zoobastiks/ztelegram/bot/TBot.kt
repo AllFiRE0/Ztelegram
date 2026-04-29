@@ -600,7 +600,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
             // Запускаем мониторинг соединения
             connectionMonitor.startMonitoring()
-
+            updateBotUsername()
             plugin.logger.info("Telegram bot started successfully! Connection monitoring enabled.")
 
         } catch (e: TelegramApiException) {
@@ -813,8 +813,20 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
         }
     }
 
+    private var botUsername: String = ZTele.conf.botUsername
+
+    private fun updateBotUsername() {
+        try {
+            val me = execute(org.telegram.telegrambots.meta.api.methods.GetMe())
+            botUsername = me.userName
+            plugin.logger.info("Bot username: @$botUsername")
+        } catch (e: Exception) {
+            plugin.logger.warning("Failed to get bot username, using from config: @$botUsername")
+        }
+    }
+
     override fun getBotUsername(): String {
-        return "YourTelegramBot"
+        return botUsername
     }
 
     /**
@@ -2354,7 +2366,7 @@ $topList
                 if (!conf.enabledUnregCommand || channelType != "register") return
 
                 val isAdmin = conf.isAdministrator(userId)
-                val chatId = getTargetChatId(conf.registerChannelId)
+                val unregChatId = getResponseChatId(currentChatId)
 
                 // Админская отвязка (с аргументом)
                 if (arguments.isNotEmpty()) {
