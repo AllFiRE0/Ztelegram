@@ -1398,7 +1398,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 player = Bukkit.getPlayerExact(playerName)
                 
                 if (player == null) {
-                    sendAutoDeleteMessage(getResponseChatId(...), conf.msgRendererPlayerNotFound.replace("%player%", playerName), conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), conf.msgRendererPlayerNotFound.replace("%player%", playerName), conf.commandsAutoDeleteSeconds)
                     return
                 }
             } else {
@@ -1841,7 +1841,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
                         if (cancelled) {
                             val message = conf.restartTelegramTimerCancelled.replace("%admin%", username)
-                            sendAutoDeleteMessage(getResponseChatId(currentChatId),, message, conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                         } else {
                             sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.msgRestartNoActiveTimer, conf.commandsAutoDeleteSeconds)
                         }
@@ -3507,7 +3507,7 @@ $topList
                 return
             }
 
-            executeCommand(command, arguments, username, user.id, "register")
+            executeCommand(command, arguments, username, user.id, "register", chatId)
             return
         }
 
@@ -3520,7 +3520,7 @@ $topList
                 val command = commandParts[0].substring(1).lowercase()
                 val arguments = if (commandParts.size > 1) commandParts[1] else ""
                 val username = user.userName ?: user.firstName
-                executeCommand(command, arguments, username, user.id, "register")
+                executeCommand(command, arguments, username, user.id, "register", chatId)
             }
         // Не спамим — молча выходим
             return
@@ -3744,7 +3744,7 @@ $topList
     fun handleRendering(playerName: String, text: String) {
         val player = Bukkit.getPlayerExact(playerName)
         if (player == null) {
-            sendAutoDeleteMessage(getResponseChatId(...), conf.msgRendererPlayerOffline.replace("%player%", playerName), conf.commandsAutoDeleteSeconds)
+            sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), conf.msgRendererPlayerOffline.replace("%player%", playerName), conf.commandsAutoDeleteSeconds)
             return
         }
         
@@ -3757,13 +3757,13 @@ $topList
                         val imageBytes = renderer.renderItemToFile(item).first
                         val itemName = item.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
                         val caption = "$playerName: [$itemName]"
-                        sendPhoto(conf.mainChannelId, imageBytes, caption)
+                        sendPhoto(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), imageBytes, caption)
                     } catch (e: Exception) {
                         plugin.logger.warning("Failed to render item: ${e.message}")
-                        sendAutoDeleteMessage(getResponseChatId(...), conf.msgRendererFailedItem, conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), conf.msgRendererFailedItem, conf.commandsAutoDeleteSeconds)
                     }
                 } else {
-                    sendAutoDeleteMessage(getResponseChatId(...), conf.msgRendererNoItem, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), conf.msgRendererNoItem, conf.commandsAutoDeleteSeconds)
                 }
             }
             
@@ -3774,7 +3774,7 @@ $topList
                     sendPhoto(conf.mainChannelId, imageBytes, "$playerName: Инвентарь")
                 } catch (e: Exception) {
                     plugin.logger.warning("Failed to render inventory: ${e.message}")
-                    sendAutoDeleteMessage(getResponseChatId(...), conf.msgRendererFailedInventory, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), conf.msgRendererFailedInventory, conf.commandsAutoDeleteSeconds)
                 }
             }
             
@@ -3785,7 +3785,7 @@ $topList
                     sendPhoto(conf.mainChannelId, imageBytes, "$playerName: Эндер-сундук")
                 } catch (e: Exception) {
                     plugin.logger.warning("Failed to render ender chest: ${e.message}")
-                    sendAutoDeleteMessage(getResponseChatId(...), conf.msgRendererFailedEnderChest, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), conf.msgRendererFailedEnderChest, conf.commandsAutoDeleteSeconds)
                 }
             }
         }
