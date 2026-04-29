@@ -711,4 +711,15 @@ class PMgr(private val plugin: ZTele) {
         val unlinked: Boolean = false,
         val rewardClaimed: Boolean = false
     )
+
+    fun isRewardClaimed(playerName: String): Boolean {
+        return registeredPlayers[playerName.lowercase()]?.rewardClaimed ?: false
+    }
+
+    fun markRewardClaimed(playerName: String) {
+        val lowerName = playerName.lowercase()
+        val data = registeredPlayers[lowerName] ?: return
+        registeredPlayers[lowerName] = data.copy(rewardClaimed = true)
+        savePlayers()
+    }
 }
