@@ -1665,13 +1665,13 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 // Проверяем, разрешена ли команда в данном канале
                 if (!isCommandAllowedInChannel(key, channelType)) {
                     // ИСПРАВЛЕНО: Используем conf.mainChannelId вместо currentChatId
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.errorsCommandNotAllowed, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.errorsCommandNotAllowed, conf.commandsAutoDeleteSeconds)
                     return
                 }
 
                 // Проверяем права администратора для команд, которые требуют админ доступ
                 if (key in listOf("restart", "cancelrestart", "list", "checkinreset") && !conf.isAdministrator(userId)) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.errorsNoAdminPermission, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.errorsNoAdminPermission, conf.commandsAutoDeleteSeconds)
                     return
                 }
 
@@ -1682,16 +1682,16 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
         }
 
         // Если команда не найдена
-        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ **Неизвестная команда**\nИспользуйте `/help` для списка команд", conf.commandsAutoDeleteSeconds)
+        sendAutoDeleteMessage(getResponseChatId(currentChatId), "❌ **Неизвестная команда**\nИспользуйте `/help` для списка команд", conf.commandsAutoDeleteSeconds)
     }
 
-    private fun executeCommand(command: String, arguments: String, username: String, userId: Long, channelType: String) {
+      private fun executeCommand(command: String, arguments: String, username: String, userId: Long, channelType: String, currentChatId: String = conf.mainChannelId) {
         when (command) {
             "checkin" -> {
                 // Сброс очков чекина для администраторов
                 if (arguments.startsWith("reset ")) {
                     if (!conf.isAdministrator(userId)) {
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ У вас нет прав для сброса очков чекина!", conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(getResponseChatId(currentChatId), "❌ У вас нет прав для сброса очков чекина!", conf.commandsAutoDeleteSeconds)
                         return
                     }
                     
@@ -1704,10 +1704,10 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     
                     if (deleted > 0) {
                         val message = conf.checkinResetSuccess.replace("%player%", targetName)
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                     } else {
                         val message = conf.checkinResetNotFound.replace("%player%", targetName)
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                     }
                     return
                 }
@@ -1716,7 +1716,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 if (!conf.checkinEnabled) return
                 val playerName = mgr.getPlayerByTelegramId(userId.toString())
                 if (playerName == null && conf.checkinRequireRegistration) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), 
                         "❌ Вы не зарегистрированы!", conf.commandsAutoDeleteSeconds)
                     return
                 }
@@ -1724,7 +1724,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
                     val result = ZTele.checkinManager.checkin(checkinKey)
                     Bukkit.getScheduler().runTask(plugin, Runnable {
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                        sendAutoDeleteMessage(getResponseChatId(currentChatId), 
                             result.message, conf.commandsAutoDeleteSeconds)
                     })
                 })
@@ -1732,7 +1732,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
             "checkinreset" -> {
                 if (arguments.isEmpty()) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ Использование: /checkinreset <никнейм>", conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), "❌ Использование: /checkinreset <никнейм>", conf.commandsAutoDeleteSeconds)
                     return
                 }
                 
@@ -1745,10 +1745,10 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 
                 if (deleted > 0) {
                     val message = conf.checkinResetSuccess.replace("%player%", targetName)
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                 } else {
                     val message = conf.checkinResetNotFound.replace("%player%", targetName)
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                 }
             }
             
@@ -1761,14 +1761,14 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 }
 
                 if (!conf.isAdministrator(userId)) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.errorsNoAdminPermission, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.errorsNoAdminPermission, conf.commandsAutoDeleteSeconds)
                     return
                 }
 
                 // Обрабатываем подкоманды админа
                 val args = arguments.split(" ", limit = 2)
                 if (args.isEmpty()) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ Укажите команду: /admin [top|topbal]", conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), "❌ Укажите команду: /admin [top|topbal]", conf.commandsAutoDeleteSeconds)
                     return
                 }
 
@@ -1776,7 +1776,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     "top" -> {
                         // Только в канале статистики
                         if (channelType != "statistics") {
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ Команда доступна только в канале статистики!", conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), "❌ Команда доступна только в канале статистики!", conf.commandsAutoDeleteSeconds)
                             return
                         }
 
@@ -1786,7 +1786,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     "topbal" -> {
                         // Только в канале статистики
                         if (channelType != "statistics") {
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ Команда доступна только в канале статистики!", conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), "❌ Команда доступна только в канале статистики!", conf.commandsAutoDeleteSeconds)
                             return
                         }
 
@@ -1794,7 +1794,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                         sendAutoBalanceTop()
                     }
                     else -> {
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ Неизвестная команда: /admin ${args[0]}\nДоступны: top, topbal", conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(getResponseChatId(currentChatId), "❌ Неизвестная команда: /admin ${args[0]}\nДоступны: top, topbal", conf.commandsAutoDeleteSeconds)
                     }
                 }
             }
@@ -1814,7 +1814,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     PlaceholderEngine.process(conf.onlineCommandResponse)
                 }
 
-                sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), response, conf.commandsAutoDeleteSeconds)
+                sendAutoDeleteMessage(getResponseChatId(currentChatId), response, conf.commandsAutoDeleteSeconds)
             }
 
             "tps" -> {
@@ -1823,7 +1823,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 // Используем новое подробное сообщение с TPS и статусом
                 val response = PlaceholderEngine.process(conf.tpsCommandMessage)
 
-                sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), response, conf.commandsAutoDeleteSeconds)
+                sendAutoDeleteMessage(getResponseChatId(currentChatId), response, conf.commandsAutoDeleteSeconds)
             }
 
             "restart" -> {
@@ -1834,7 +1834,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 when {
                     args.size == 1 -> {
                         // Мгновенная перезагрузка
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.restartImmediateMessage, conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.restartImmediateMessage, conf.commandsAutoDeleteSeconds)
 
                         // Выполняем команду рестарта в консоли
                         Bukkit.getScheduler().runTask(plugin, Runnable {
@@ -1848,9 +1848,9 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
                         if (cancelled) {
                             val message = conf.restartTelegramTimerCancelled.replace("%admin%", username)
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId),, message, conf.commandsAutoDeleteSeconds)
                         } else {
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ Нет активных таймеров рестарта", conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), "❌ Нет активных таймеров рестарта", conf.commandsAutoDeleteSeconds)
                         }
                     }
 
@@ -1860,13 +1860,13 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
                         if (delayMinutes == null) {
                             val usage = "Использование: `/restart [время]`\nПример: `/restart 5m` (через 5 минут)"
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), usage, conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), usage, conf.commandsAutoDeleteSeconds)
                             return
                         }
 
                         if (delayMinutes < 1 || delayMinutes > 60) {
                             val error = "❌ Время должно быть от 1 до 60 минут"
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), error, conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), error, conf.commandsAutoDeleteSeconds)
                             return
                         }
 
@@ -1875,7 +1875,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                         if (activeTask != null) {
                             val remaining = ZTele.restartManager.getRemainingTime() ?: "неизвестно"
                             val message = conf.restartTelegramTimerActive.replace("%remaining%", remaining)
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                             return
                         }
 
@@ -1886,9 +1886,9 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                             val message = conf.restartTelegramTimerStarted
                                 .replace("%time%", formatTime(delayMinutes))
                                 .replace("%admin%", username)
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                         } else {
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "❌ Ошибка при планировании рестарта", conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), "❌ Ошибка при планировании рестарта", conf.commandsAutoDeleteSeconds)
                         }
                     }
                 }
@@ -1903,10 +1903,10 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                         customPlaceholders["admin"] = username
                     }
                     val message = PlaceholderEngine.process(conf.restartTelegramCancelSuccess, context)
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                 } else {
                     val message = conf.restartTelegramCancelNoRestart
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                 }
             }
 
@@ -1914,7 +1914,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 if (!conf.enabledGenderCommand) return
 
                 if (arguments.isEmpty()) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.genderCommandUsage.replace("\\n", "\n"), conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.genderCommandUsage.replace("\\n", "\n"), conf.commandsAutoDeleteSeconds)
                     return
                 }
 
@@ -1922,7 +1922,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 val player = mgr.getPlayerByTelegramId(userId.toString())
 
                 if (player == null) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.genderCommandNoPlayer.replace("\\n", "\n"), conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.genderCommandNoPlayer.replace("\\n", "\n"), conf.commandsAutoDeleteSeconds)
                     return
                 }
 
@@ -1934,7 +1934,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 }
 
                 if (gender == null) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.genderCommandUsage.replace("\\n", "\n"), conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.genderCommandUsage.replace("\\n", "\n"), conf.commandsAutoDeleteSeconds)
                     return
                 }
 
@@ -1945,7 +1945,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                         "gender" to conf.getGenderTranslation(gender)
                     ))
                     val response = PlaceholderEngine.process(conf.genderCommandResponse, context)
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), response, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), response, conf.commandsAutoDeleteSeconds)
                 }
             }
 
@@ -1953,7 +1953,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 if (!conf.enabledPlayerCommand) return
 
                 if (arguments.isEmpty()) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.playerCommandUsage.replace("\\n", "\n"), conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.playerCommandUsage.replace("\\n", "\n"), conf.commandsAutoDeleteSeconds)
                     return
                 }
 
@@ -1967,7 +1967,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 if (!offlinePlayer.hasPlayedBefore() && !isOnline) {
                     val context = PlaceholderEngine.createCustomContext(mapOf("player" to playerName))
                     val response = PlaceholderEngine.process(conf.playerCommandNoPlayer, context)
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), response, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), response, conf.commandsAutoDeleteSeconds)
                     return
                 }
 
@@ -2075,7 +2075,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     plugin.logger.info("[TBot] /player DEBUG - PlaceholderEngine result: '$response'")
                 }
 
-                sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), response, conf.commandsAutoDeleteSeconds)
+                sendAutoDeleteMessage(getResponseChatId(currentChatId), response, conf.commandsAutoDeleteSeconds)
             }
 
 
@@ -2093,7 +2093,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                             if (hours != null) {
                                 Pair(StatsManager.StatsPeriod.CUSTOM, arg)
                             } else {
-                                sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.statsCommandUsage, conf.commandsAutoDeleteSeconds)
+                                sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.statsCommandUsage, conf.commandsAutoDeleteSeconds)
                                 return
                             }
                         }
@@ -2111,7 +2111,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 }
 
                 if (statsResult.count == 0) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.statsNoPlayers, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.statsNoPlayers, conf.commandsAutoDeleteSeconds)
                     return
                 }
 
@@ -2139,7 +2139,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
                 val response = PlaceholderEngine.process(conf.statsMessage, context)
 
-                sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), response, conf.commandsAutoDeleteSeconds)
+                sendAutoDeleteMessage(getResponseChatId(currentChatId), response, conf.commandsAutoDeleteSeconds)
             }
 
             "top" -> {
@@ -2160,7 +2160,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                             if (hours != null) {
                                 arg
                             } else {
-                                sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.topCommandUsage, conf.commandsAutoDeleteSeconds)
+                                sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.topCommandUsage, conf.commandsAutoDeleteSeconds)
                                 return
                         }
                     }
@@ -2190,11 +2190,11 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     if (conf.debugEnabled) {
                         plugin.logger.info("[TBot] Final top message before sending: $response")
                     }
-                sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), response, conf.commandsAutoDeleteSeconds)
+                sendAutoDeleteMessage(getResponseChatId(currentChatId), response, conf.commandsAutoDeleteSeconds)
 
                 } catch (e: Exception) {
                     plugin.logger.severe("Error processing /top command: ${e.message}")
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.topNoData, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.topNoData, conf.commandsAutoDeleteSeconds)
                 }
             }
 
@@ -2211,11 +2211,11 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     if (conf.debugEnabled) {
                         plugin.logger.info("[TBot] Final topbal message before sending: $response")
                     }
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), response, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), response, conf.commandsAutoDeleteSeconds)
 
                 } catch (e: Exception) {
                     plugin.logger.severe("Error processing /topbal command: ${e.message}")
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.topBalError, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.topBalError, conf.commandsAutoDeleteSeconds)
                 }
             }
 
@@ -2489,7 +2489,7 @@ $topList
                         }
                     }
 
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                     return
                 }
 
@@ -2528,7 +2528,7 @@ $topList
                     }
                 }
 
-                sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
             }
 
             "reptop" -> {
@@ -2560,7 +2560,7 @@ $topList
                     }
                 }
 
-                sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
             }
 
             "reprecent" -> {
@@ -2587,7 +2587,7 @@ $topList
                     }
                 }
 
-                sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
             }
 
             "random" -> {
@@ -2598,7 +2598,7 @@ $topList
                     val remainingTime = ZTele.randomManager.getRemainingTime(userId)
                     val context = PlaceholderEngine.createCustomContext(mapOf("time" to remainingTime))
                     val message = PlaceholderEngine.process(conf.randomCommandCooldown, context)
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                     return
                 }
 
@@ -2609,19 +2609,19 @@ $topList
                         val onlinePlayers = Bukkit.getOnlinePlayers()
                         
                         if (onlinePlayers.isEmpty()) {
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.randomCommandNoPlayers, conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.randomCommandNoPlayers, conf.commandsAutoDeleteSeconds)
                             return@Runnable
                         }
                         
                         if (onlinePlayers.size == 1) {
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.randomCommandOnlyOnePlayer, conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.randomCommandOnlyOnePlayer, conf.commandsAutoDeleteSeconds)
                             return@Runnable
                         }
 
                         // Выбираем случайного игрока
                         val winner = ZTele.randomManager.selectRandomPlayer()
                         if (winner == null) {
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.randomCommandNoPlayers, conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.randomCommandNoPlayers, conf.commandsAutoDeleteSeconds)
                             return@Runnable
                         }
 
@@ -2629,13 +2629,13 @@ $topList
                         val rewards = conf.randomCommandRewards
                         if (rewards.isEmpty()) {
                             plugin.logger.warning("Random command: No rewards configured!")
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.randomCommandError, conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.randomCommandError, conf.commandsAutoDeleteSeconds)
                             return@Runnable
                         }
 
                         val rewardCommand = ZTele.randomManager.selectRandomReward(rewards)
                         if (rewardCommand == null) {
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.randomCommandError, conf.commandsAutoDeleteSeconds)
+                            sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.randomCommandError, conf.commandsAutoDeleteSeconds)
                             return@Runnable
                         }
 
@@ -2659,11 +2659,11 @@ $topList
                         val telegramContext = PlaceholderEngine.createCustomContext(mapOf(
                             "player" to winner,
                             "reward" to rewardDescription,
-                            "server" to "Zoobastiks.20tps.name",
+                            "server" to "by AllFiRE",
                             "time" to timeStr
                         ))
                         val telegramMessage = PlaceholderEngine.process(conf.randomCommandWinTelegram, telegramContext)
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), telegramMessage, conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(getResponseChatId(currentChatId), telegramMessage, conf.commandsAutoDeleteSeconds)
 
                         // Выполняем команду награды в основном потоке
                         Bukkit.getScheduler().runTask(plugin, Runnable {
@@ -2698,7 +2698,7 @@ $topList
                     } catch (e: Exception) {
                         plugin.logger.severe("Error in random command: ${e.message}")
                         e.printStackTrace()
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.randomCommandError, conf.commandsAutoDeleteSeconds)
+                        sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.randomCommandError, conf.commandsAutoDeleteSeconds)
                     }
                 })
             }
@@ -2711,7 +2711,7 @@ $topList
                     ZTele.menuManager.openMainMenu(chatId, userId, username)
                 } catch (e: kotlin.UninitializedPropertyAccessException) {
                     // menuManager еще не инициализирован
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), "⏳ Меню еще не готово. Подождите немного...", conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), "⏳ Меню еще не готово. Подождите немного...", conf.commandsAutoDeleteSeconds)
                 }
             }
 
@@ -2722,21 +2722,21 @@ $topList
                 
                 // Проверяем, что Vault доступен
                 if (ZTele.economy == null) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.paymentCommandVaultNotFound, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.paymentCommandVaultNotFound, conf.commandsAutoDeleteSeconds)
                     return
                 }
                 
                 // Проверяем регистрацию
                 val playerName = mgr.getPlayerByTelegramId(userId.toString())
                 if (playerName == null) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.paymentCommandNotRegistered, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.paymentCommandNotRegistered, conf.commandsAutoDeleteSeconds)
                     return
                 }
                 
                 // Парсим аргументы: /pay ник_игрока сумма
                 val args = arguments.trim().split("\\s+".toRegex(), limit = 2)
                 if (args.size < 2) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.paymentCommandUsage, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.paymentCommandUsage, conf.commandsAutoDeleteSeconds)
                     return
                 }
                 
@@ -2747,7 +2747,7 @@ $topList
                 val amount = try {
                     amountStr.replace(",", ".").toDouble()
                 } catch (e: NumberFormatException) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.paymentCommandInvalidAmount, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.paymentCommandInvalidAmount, conf.commandsAutoDeleteSeconds)
                     return
                 }
                 
@@ -2807,7 +2807,7 @@ $topList
                         }
                         errorMessage
                     }
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.commandsAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
                 })
             }
 
