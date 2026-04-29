@@ -1682,7 +1682,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 }
 
                 // Выполняем команду
-                executeCommand(key, arguments, username, userId, channelType)
+                executeCommand(key, arguments, username, userId, channelType, currentChatId)
                 return
             }
         }
