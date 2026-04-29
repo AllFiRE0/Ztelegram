@@ -1204,14 +1204,14 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
         // Проверка черного списка
         if (conf.blacklistEnabled && mgr.isPlayerBlacklisted(userId.toString())) {
             // Отправляем сообщение о блокировке в основной канал вместо личного сообщения
-            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.blockedMessage, conf.commandsAutoDeleteSeconds)
+            sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), conf.blockedMessage, conf.commandsAutoDeleteSeconds)
             return
         }
 
         // Проверка белого списка
         if (conf.whitelistEnabled && !mgr.isPlayerWhitelisted(userId.toString())) {
             // Отправляем сообщение о необходимости регистрации в основной канал вместо личного сообщения
-            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), conf.noRegistrationMessage, conf.commandsAutoDeleteSeconds)
+            sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), conf.noRegistrationMessage, conf.commandsAutoDeleteSeconds)
             return
         }
 
@@ -1258,7 +1258,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
             if (targetPlayerName == null) {
                 sendAutoDeleteMessage(
-                    getTargetChatId(conf.mainChannelId),
+                    getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId),
                     "❌ Пользователь $targetUsername не зарегистрирован в игре!",
                     conf.reputationAutoDeleteSeconds
                 )
@@ -1309,7 +1309,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                             "👎 **$sourceName** понизил репутацию игрока **$targetPlayerName**\n⭐ Рейтинг: **${result.targetData.totalReputation}** (${result.targetData.reputationLevel.emoji} ${result.targetData.reputationLevel.displayName})"
                         }
 
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), fallbackMessage, conf.reputationAutoDeleteSeconds)
+                        sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), fallbackMessage, conf.reputationAutoDeleteSeconds)
                         return
                     }
 
@@ -1341,12 +1341,12 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                         return
                     }
 
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), message, conf.reputationAutoDeleteSeconds)
+                    sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), message, conf.reputationAutoDeleteSeconds)
                 }
 
                 is org.zoobastiks.ztelegram.reputation.ReputationResult.Failure -> {
                     sendAutoDeleteMessage(
-                        getTargetChatId(conf.mainChannelId),
+                        getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId),
                         "❌ ${result.message}",
                         conf.reputationAutoDeleteSeconds
                     )
@@ -1366,7 +1366,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                         .replace("%time%", timeStr)
 
                     sendAutoDeleteMessage(
-                        getTargetChatId(conf.mainChannelId),
+                        getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId),
                         message,
                         conf.reputationAutoDeleteSeconds
                     )
@@ -1402,7 +1402,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 player = Bukkit.getPlayerExact(playerName)
                 
                 if (player == null) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                    sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), 
                         "❌ Игрок с ником \"$playerName\" не найден на сервере!\n💡 Зарегистрируйте аккаунт или зайдите на сервер под этим ником", 
                         conf.commandsAutoDeleteSeconds)
                     return
@@ -1410,7 +1410,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             } else {
                 player = Bukkit.getPlayerExact(playerName)
                 if (player == null) {
-                    sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                    sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), 
                         "❌ Игрок $playerName не в сети!", 
                         conf.commandsAutoDeleteSeconds)
                     return
@@ -1431,12 +1431,12 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                             sendPhoto(currentChatId, imageBytes, caption)
                         } catch (e: Exception) {
                             plugin.logger.warning("Failed to render item: ${e.message}")
-                            sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                            sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), 
                                 "❌ Не удалось отрендерить предмет", 
                                 conf.commandsAutoDeleteSeconds)
                         }
                     } else {
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                        sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), 
                             "❌ У вас нет предмета в руке!", 
                             conf.commandsAutoDeleteSeconds)
                     }
@@ -1451,7 +1451,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                         sendPhoto(currentChatId, imageBytes, caption)
                     } catch (e: Exception) {
                         plugin.logger.warning("Failed to render inventory: ${e.message}")
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                        sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), 
                             "❌ Не удалось отрендерить инвентарь", 
                             conf.commandsAutoDeleteSeconds)
                     }
@@ -1466,7 +1466,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                         sendPhoto(currentChatId, imageBytes, caption)
                     } catch (e: Exception) {
                         plugin.logger.warning("Failed to render ender chest: ${e.message}")
-                        sendAutoDeleteMessage(getTargetChatId(conf.mainChannelId), 
+                        sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), 
                             "❌ Не удалось отрендерить эндер-сундук", 
                             conf.commandsAutoDeleteSeconds)
                     }
