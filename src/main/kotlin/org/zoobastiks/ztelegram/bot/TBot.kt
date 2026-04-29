@@ -987,21 +987,10 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             }
         }
         
-        // 2. Старая логика channels
-        return when {
-            conf.registerChannelId.isNotEmpty() && isChannelMatch(fromChatId, conf.registerChannelId) ->
-                getTargetChatId(conf.registerChannelId)
-            conf.consoleChannelId.isNotEmpty() && isChannelMatch(fromChatId, conf.consoleChannelId) ->
-                getTargetChatId(conf.consoleChannelId)
-            conf.gameChannelId.isNotEmpty() && isChannelMatch(fromChatId, conf.gameChannelId) ->
-                getTargetChatId(conf.gameChannelId)
-            conf.statisticsChannelId.isNotEmpty() && isChannelMatch(fromChatId, conf.statisticsChannelId) ->
-                getTargetChatId(conf.statisticsChannelId)
-            else ->
-                getTargetChatId(conf.mainChannelId)
-        }
+        // 2. Если не нашли в game_chats — возвращаем тот же chatId
+        return fromChatId
     }
-
+    
     /**
      * Проверяет, разрешена ли команда в данном канале
      */
