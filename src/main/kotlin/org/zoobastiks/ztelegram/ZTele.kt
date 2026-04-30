@@ -197,6 +197,8 @@ class ZTele : JavaPlugin() {
         // Добавляем пустую строку перед сообщением
         Bukkit.getConsoleSender().sendMessage("")
 
+		conf.reload()
+
         // Выводим красивое сообщение о запуске
         val pluginVersion = pluginMeta.version
         val startMessage = arrayOf(
