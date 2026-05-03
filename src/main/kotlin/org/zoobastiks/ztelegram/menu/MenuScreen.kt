@@ -104,6 +104,7 @@ class StatsMenuScreen(
             listOf(createButton("📈 Статистика за сегодня", CallbackData.STATS_TODAY.withUserId(userId))),
             listOf(createButton("📊 Топ игроков", CallbackData.STATS_TOP.withUserId(userId))),
             listOf(createButton("💰 Топ по балансу", CallbackData.STATS_TOP_BAL.withUserId(userId))),
+			listOf(createButton("🎯 Топ по отметкам", CallbackData.STATS_TOP_CHECKIN.withUserId(userId))),
             listOf(createButton("🔙 Назад в меню", CallbackData.MAIN_MENU.withUserId(userId)))
         )
     )
@@ -363,6 +364,7 @@ object CallbackData {
     const val STATS_TODAY = "menu:stats:today"
     const val STATS_TOP = "menu:stats:top"
     const val STATS_TOP_BAL = "menu:stats:topbal"
+	const val STATS_TOP_CHECKIN = "menu:stats:topcheckin"
     
     // Игрок
     const val PLAYER_MENU = "menu:player"
