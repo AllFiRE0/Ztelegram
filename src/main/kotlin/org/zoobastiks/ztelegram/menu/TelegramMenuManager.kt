@@ -766,6 +766,67 @@ class TelegramMenuManager(
                     bot.answerCallbackQuery(callbackQueryId)
                     return true
                 }
+
+                CallbackData.STATS_TOP_CHECKIN -> {
+                    if (!conf.checkinTopEnabled) {
+                        bot.answerCallbackQuery(callbackQueryId, "Топ по чек-ин отключен", showAlert = true)
+                        return true
+                    }
+                    Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+                        val connection = ZTele.checkinManager.getConnection()
+                        val topCheckin = mutableListOf<Pair<String, Int>>()
+                        
+                        connection?.prepareStatement(
+                            "SELECT player_name, points FROM checkins ORDER BY points DESC LIMIT ?"
+                        )?.use { stmt ->
+                            stmt.setInt(1, conf.checkinTopLimit)
+                            stmt.executeQuery()?.use { rs ->
+                                while (rs.next()) {
+                                    val name = rs.getString("player_name")
+                                    val points = rs.getInt("points")
+                                    val originalName = ZTele.mgr.getOriginalPlayerName(name)
+                                    val displayName = originalName ?: name
+                                    topCheckin.add(displayName to points)
+                                }
+                            }
+                        }
+                        
+                        val message = if (topCheckin.isEmpty()) {
+                            conf.checkinTopNoData
+                        } else {
+                            buildString {
+                                append(conf.checkinTopTitle)
+                                append("\n\n")
+                                topCheckin.forEachIndexed { index, (playerName, points) ->
+                                    val position = index + 1
+                                    val medal = conf.checkinTopEmojis[position] ?: "$position."
+                                    val entry = conf.checkinTopEntry
+                                        .replace("%position%", medal)
+                                        .replace("%player%", playerName)
+                                        .replace("%points%", points.toString())
+                                        .replace("%currency%", ZTele.conf.checkinCurrencyName)
+                                    append(entry)
+                                    if (index < topCheckin.size - 1) append("\n")
+                                }
+                            }
+                        }
+                        
+                        val keyboard = InlineKeyboardMarkup()
+                        keyboard.keyboard = listOf(listOf(
+                            org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton().apply {
+                                text = "🔙 Назад"
+                                callbackData = CallbackData.STATS_MENU.withUserId(userId)
+                            }
+                        ))
+                        
+                        Bukkit.getScheduler().runTask(plugin, Runnable {
+                            bot.editMenuMessage(chatId, messageId, message, keyboard)
+                            scheduleMenuAutoClose(chatId, messageId)
+                        })
+                    })
+                    bot.answerCallbackQuery(callbackQueryId)
+                    return true
+                }
                 
                 CallbackData.PLAYER_MENU -> {
                     // Отвечаем на callback query сразу
