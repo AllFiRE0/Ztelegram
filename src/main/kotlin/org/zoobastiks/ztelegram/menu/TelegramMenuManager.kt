@@ -769,7 +769,7 @@ class TelegramMenuManager(
 
                 CallbackData.STATS_TOP_CHECKIN -> {
                     if (!conf.checkinTopEnabled) {
-                        bot.answerCallbackQuery(callbackQueryId, "Топ по чек-ин отключен", showAlert = true)
+                        bot.answerCallbackQuery(callbackQueryId, "Топ по отметкам отключен", showAlert = true)
                         return true
                     }
                     Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
@@ -777,9 +777,8 @@ class TelegramMenuManager(
                         val topCheckin = mutableListOf<Pair<String, Int>>()
                         
                         connection?.prepareStatement(
-                            "SELECT player_name, points FROM checkins ORDER BY points DESC LIMIT ?"
+                            "SELECT player_name, points FROM checkins ORDER BY points DESC LIMIT 10"
                         )?.use { stmt ->
-                            stmt.setInt(1, conf.checkinTopLimit)
                             stmt.executeQuery()?.use { rs ->
                                 while (rs.next()) {
                                     val name = rs.getString("player_name")
@@ -794,21 +793,19 @@ class TelegramMenuManager(
                         val message = if (topCheckin.isEmpty()) {
                             conf.checkinTopNoData
                         } else {
-                            buildString {
-                                append(conf.checkinTopTitle)
-                                append("\n\n")
-                                topCheckin.forEachIndexed { index, (playerName, points) ->
-                                    val position = index + 1
-                                    val medal = conf.checkinTopEmojis[position] ?: "$position."
-                                    val entry = conf.checkinTopEntry
-                                        .replace("%position%", medal)
-                                        .replace("%player%", playerName)
-                                        .replace("%points%", points.toString())
-                                        .replace("%currency%", ZTele.conf.checkinCurrencyName)
-                                    append(entry)
-                                    if (index < topCheckin.size - 1) append("\n")
-                                }
+                            var result = conf.checkinTopMessage
+                            result = result.replace("%currency%", ZTele.conf.checkinCurrencyName)
+                            topCheckin.forEachIndexed { index, (playerName, points) ->
+                                val pos = index + 1
+                                result = result.replace("%player_$pos%", playerName)
+                                result = result.replace("%points_$pos%", points.toString())
                             }
+                            // Заполняем пустые позиции
+                            for (i in (topCheckin.size + 1)..10) {
+                                result = result.replace("%player_$i%", "—")
+                                result = result.replace("%points_$i%", "—")
+                            }
+                            result
                         }
                         
                         val keyboard = InlineKeyboardMarkup()
