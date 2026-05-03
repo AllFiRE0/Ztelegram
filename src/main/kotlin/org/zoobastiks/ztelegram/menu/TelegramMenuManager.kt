@@ -967,16 +967,18 @@ class TelegramMenuManager(
             if (action.startsWith("${CallbackData.PLAYER_SELECT}:")) {
                 val playerName = action.removePrefix("${CallbackData.PLAYER_SELECT}:")
                 if (playerName.isNotEmpty()) {
+                    // Получаем оригинальное имя с правильным регистром
+                    val originalName = ZTele.mgr.getOriginalPlayerName(playerName)
+                    
                     Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-                        // Используем правильный регистр для поиска данных игрока
-                        val playerData = ZTele.mgr.getPlayerData(playerName)
-                        // Для проверки онлайн статуса используем оригинальное имя
-                        val isOnline = Bukkit.getPlayerExact(playerName) != null
-                        val offlinePlayer = Bukkit.getOfflinePlayer(playerName)
+                        // Используем оригинальное имя для поиска
+                        val playerData = ZTele.mgr.getPlayerData(originalName)
+                        val isOnline = Bukkit.getPlayerExact(originalName) != null
+                        val offlinePlayer = Bukkit.getOfflinePlayer(originalName)
                         
                         // Проверяем, существует ли игрок в Minecraft, даже если не зарегистрирован (как в команде /player)
                         if (!offlinePlayer.hasPlayedBefore() && !isOnline) {
-                            val context = PlaceholderEngine.createCustomContext(mapOf("player" to playerName))
+                            val context = PlaceholderEngine.createCustomContext(mapOf("player" to originalName))
                             val response = PlaceholderEngine.process(conf.playerCommandNoPlayer, context)
                             val keyboard = InlineKeyboardMarkup()
                             keyboard.keyboard = listOf(listOf(
@@ -996,12 +998,12 @@ class TelegramMenuManager(
                         val gender = if (rawGender == "man" || rawGender == "girl") conf.getGenderTranslation(rawGender) else conf.getStatusTranslation("not_set")
                         
                         // Используем ту же логику получения баланса, что и в команде /player
-                        val rawBalance = bot.getPlayerBalance(playerName)
+                        val rawBalance = bot.getPlayerBalance(originalName)
                         val balance = String.format("%.2f", rawBalance)
                         
-                        val currentHealth = if (isOnline) Bukkit.getPlayerExact(playerName)?.health?.toInt() ?: 0 else 0
+                        val currentHealth = if (isOnline) Bukkit.getPlayerExact(originalName)?.health?.toInt() ?: 0 else 0
                         val coords = if (isOnline) {
-                            val player = Bukkit.getPlayerExact(playerName)
+                            val player = Bukkit.getPlayerExact(originalName)
                             val loc = player?.location
                             if (loc != null) "X: ${loc.blockX}, Y: ${loc.blockY}, Z: ${loc.blockZ}" else conf.getStatusTranslation("offline_coords")
                         } else conf.getStatusTranslation("offline_coords")
@@ -1045,10 +1047,10 @@ class TelegramMenuManager(
                         }
                         
                         val deaths = offlinePlayer.getStatistic(org.bukkit.Statistic.DEATHS)
-                        val level = if (isOnline) Bukkit.getPlayerExact(playerName)?.level ?: 0 else 0
+                        val level = if (isOnline) Bukkit.getPlayerExact(originalName)?.level ?: 0 else 0
                         
                         // Получаем данные репутации (как в команде /player)
-                        val repData = ZTele.reputation.getReputationData(playerName)
+                        val repData = ZTele.reputation.getReputationData(originalName)
                         val reputation = repData.totalReputation.toString()
                         val reputationPositive = repData.positiveRep.toString()
                         val reputationNegative = repData.negativeRep.toString()
@@ -1056,7 +1058,7 @@ class TelegramMenuManager(
                         val reputationPercent = String.format("%.1f", repData.positivePercentage)
                         
                         val context = PlaceholderEngine.createCustomContext(mapOf(
-                            "player" to playerName,
+                            "player" to originalName,
                             "gender" to gender,
                             "balance" to balance,
                             "online" to onlineStatus,
@@ -2349,9 +2351,16 @@ class TelegramMenuManager(
                     // Проверяем статус игроков синхронно на основном потоке
                     Bukkit.getScheduler().runTask(plugin, Runnable {
                         allPlayers.chunked(2).forEach { chunk ->
-                            val row = chunk.map { lowerPlayerName ->
+                            val row = chunk.mapNotNull { lowerPlayerName ->
                                 // Получаем оригинальное имя с правильным регистром
                                 val originalName = ZTele.mgr.getOriginalPlayerName(lowerPlayerName)
+                                val offlinePlayer = Bukkit.getOfflinePlayer(originalName)
+                                
+                                // Пропускаем игроков, которые никогда не заходили на сервер
+                                if (!offlinePlayer.hasPlayedBefore() && Bukkit.getPlayerExact(originalName) == null) {
+                                    return@mapNotNull null
+                                }
+                                
                                 val isOnline = Bukkit.getPlayerExact(originalName) != null
                                 val statusEmoji = if (isOnline) "🟢" else "🔴"
                                 org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton().apply {
@@ -2360,7 +2369,9 @@ class TelegramMenuManager(
                                     callbackData = "${CallbackData.PLAYER_SELECT}:$originalName".withUserId(userId)
                                 }
                             }
-                            buttons.add(row)
+                            if (row.isNotEmpty()) {
+                                buttons.add(row)
+                            }
                         }
                         buttons.add(listOf(
                             org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton().apply {
