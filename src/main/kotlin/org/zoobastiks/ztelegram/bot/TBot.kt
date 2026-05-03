@@ -1004,7 +1004,6 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             else -> true
         }
     }
-}
 
     /**
      * Получает правильный chatId для отправки сообщений
