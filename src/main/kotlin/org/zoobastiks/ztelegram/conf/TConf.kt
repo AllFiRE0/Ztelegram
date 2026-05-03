@@ -349,6 +349,22 @@ class TConf(private val plugin: ZTele) {
     var topBalNoData: String = "❌ Нет данных о балансах игроков."
     var topBalError: String = "❌ Ошибка при получении данных о балансах."
 
+    // Check-in top command
+    var checkinTopEnabled: Boolean = true
+    var checkinTopNoData: String = "🎯 **Топ по чек-ин**\n\nПока никто не отметился"
+    var checkinTopMessage: String = """🎯 **Топ-10 по отметкам**
+
+🥇 `%player_1%` » **%points_1%** %currency%
+🥈 `%player_2%` » **%points_2%** %currency%
+🥉 `%player_3%` » **%points_3%** %currency%
+④ `%player_4%` » **%points_4%** %currency%
+⓹ `%player_5%` » **%points_5%** %currency%
+⓺ `%player_6%` » **%points_6%** %currency%
+⓻ `%player_7%` » **%points_7%** %currency%
+⓼ `%player_8%` » **%points_8%** %currency%
+⓽ `%player_9%` » **%points_9%** %currency%
+⓾ `%player_10%` » **%points_10%** %currency%"""
+
     // Auto notifications settings
     var autoNotificationsEnabled: Boolean = true
     var autoNotificationsTimezone: String = "Europe/Moscow"
@@ -1009,7 +1025,7 @@ class TConf(private val plugin: ZTele) {
         // Загружаем help сообщения из config.yml или используем значения по умолчанию
         // Пробуем сначала help, потом commands.help (для совместимости)
         helpMain = conf.getString("help.main") ?: conf.getString("commands.help.main") ?: "🤖 **Доступные команды:**\n\n/online - список игроков онлайн\n/tps - производительность сервера\n/stats [период] - статистика игроков\n/top [период] - топ по времени игры\n/topbal - топ по балансу\n/player никнейм - информация об игроке\n/rep - команды репутации\n/restart - перезагрузка сервера (админ)"
-        helpRegister = conf.getString("help.register") ?: conf.getString("commands.help.register") ?: "📝 **Команды регистрации:**\n\nваш_никнейм - зарегистрироваться\n/unreg никнейм - отменить регистрацию\n/list - список игроков (админ)"
+        helpRegister = conf.getString("help.register") ?: conf.getString("commands.help.register") ?: "📝 **Команды регистрации:**\n\nваш_никнейм - зарегистрироваться\n/unreg никнейм - отменить регистрацию\n/list - список игроков (админ)\n/checkin - ежедневная отметка"
         helpGame = conf.getString("help.game") ?: conf.getString("commands.help.game") ?: "🎮 **Игровые команды:**\n\n/game - начать игру\n/игра - начать игру"
         helpStatistics = conf.getString("help.statistics") ?: conf.getString("commands.help.statistics") ?: "📊 **Команды статистики:**\n\n/stats [период] - статистика игроков\n/top [период] - топ по времени игры\n/topbal - топ по балансу"
         helpReputation = conf.getString("help.reputation") ?: "⭐ **Команды репутации:**\n\n**Ответьте на сообщение** и используйте:\n• `/rep+` или `/+rep` - дать положительную репутацию\n• `/rep-` или `/-rep` - дать отрицательную репутацию\n• Обязательно укажите причину\n\n**Информация:**\n• `/rep @игрок` - посмотреть репутацию игрока\n• `/rep` - ваша репутация\n• `/reptop` - топ по репутации\n• `/reprecent` - последние изменения репутации"
@@ -1147,6 +1163,11 @@ class TConf(private val plugin: ZTele) {
         topBalMessage = conf.getString("commands.topbal.message", topBalMessage) ?: topBalMessage
         topBalNoData = conf.getString("commands.topbal.no-data", topBalNoData) ?: topBalNoData
         topBalError = conf.getString("commands.topbal.error", topBalError) ?: topBalError
+
+        // Check-in top command
+        checkinTopEnabled = conf.getBoolean("commands.checkintop.enabled", true)
+        checkinTopNoData = conf.getString("commands.checkintop.no-data", checkinTopNoData) ?: checkinTopNoData
+        checkinTopMessage = conf.getString("commands.checkintop.message", checkinTopMessage) ?: checkinTopMessage
 
         // Auto notifications
         autoNotificationsEnabled = conf.getBoolean("auto_notifications.enabled", autoNotificationsEnabled)
