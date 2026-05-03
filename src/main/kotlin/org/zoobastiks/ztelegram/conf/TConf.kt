@@ -757,7 +757,7 @@ class TConf(private val plugin: ZTele) {
             )
         )
 
-        loadConfig()
+        // loadConfig()
     }
 
     fun reload() {
