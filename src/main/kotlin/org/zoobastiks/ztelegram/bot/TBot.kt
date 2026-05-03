@@ -1687,7 +1687,8 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
         sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.msgUnknownCommand, conf.commandsAutoDeleteSeconds)
     }
 
-      private fun executeCommand(command: String, arguments: String, username: String, userId: Long, channelType: String, currentChatId: String = conf.mainChannelId) {
+      private fun executeCommand(command: String, arguments: String, username: String, userId: Long, channelType: String, currentChatId: String = ZTele.conf.mainChannelId) {
+        val conf = ZTele.conf
         when (command) {
             "checkin" -> {
                 // Сброс очков чекина для администраторов
@@ -5347,7 +5348,6 @@ $topList
     }
     
     // ========== ОБРАБОТЧИК НАЖАТИЙ КНОПОК ==========
-    
     fun handleBookCallback(callbackQuery: CallbackQuery): Boolean {
         val data = callbackQuery.data ?: return false
         val message = callbackQuery.message ?: return false
