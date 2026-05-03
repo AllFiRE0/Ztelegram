@@ -996,14 +996,15 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
      */
     private fun isCommandAllowedInChannel(command: String, channelType: String): Boolean {
         return when (channelType) {
-            "main" -> command in listOf("online", "tps", "restart", "cancelrestart", "stats", "top", "topbal", "player", "gender", "rep", "reptop", "reprecent", "random", "menu", "help", "помощь", "pay", "перевод", "платеж")
-            "register" -> command in listOf("unreg", "отменить", "list", "список", "help", "помощь")
+            "main" -> command in listOf("online", "tps", "restart", "cancelrestart", "stats", "top", "topbal", "player", "gender", "rep", "reptop", "reprecent", "random", "menu", "help", "помощь", "pay", "перевод", "платеж", "checkin")
+            "register" -> command in listOf("unreg", "отменить", "list", "список", "help", "помощь", "checkin")
             "game" -> command in listOf("game", "игра", "help", "помощь")
             "statistics" -> command in listOf("admin", "stats", "статистика", "top", "топ", "topbal", "топбал", "help", "помощь")
-            "console" -> true // В консольном канале все команды разрешены
+            "console" -> true
             else -> true
         }
     }
+}
 
     /**
      * Получает правильный chatId для отправки сообщений
