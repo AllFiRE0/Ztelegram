@@ -1035,7 +1035,7 @@ class TelegramMenuManager(
                         val offlinePlayer = Bukkit.getOfflinePlayer(originalName)
                         
                         // Проверяем, существует ли игрок в Minecraft, даже если не зарегистрирован (как в команде /player)
-                        if (!offlinePlayer.hasPlayedBefore() && !isOnline) {
+                        if (!isOnline && playerData == null) {
                             val context = PlaceholderEngine.createCustomContext(mapOf("player" to originalName))
                             val response = PlaceholderEngine.process(conf.playerCommandNoPlayer, context)
                             val keyboard = InlineKeyboardMarkup()
