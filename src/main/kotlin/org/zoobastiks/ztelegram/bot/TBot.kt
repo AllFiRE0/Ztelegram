@@ -1065,9 +1065,20 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             val username = message.from.userName ?: message.from.firstName
             val userId = message.from.id
 
-            // Проверяем, является ли это ответом на сообщение (для репутации)
             val replyToMessage = if (message.isReply) message.replyToMessage else null
-
+            // Удаляем сообщение с командой по таймеру
+            if (text.startsWith("/")) {
+                val messageIdToDelete = message.messageId
+                val chatIdToDelete = chatId
+                Bukkit.getScheduler().runTaskLaterAsynchronously(plugin, Runnable {
+                    try {
+                        deleteMessage(chatIdToDelete, messageIdToDelete)
+                    } catch (e: Exception) {
+                        // Игнорируем ошибки удаления
+                    }
+                }, conf.commandsAutoDeleteSeconds * 20L)
+            }
+            
             // Фильтрация сообщений
             if (!shouldProcessMessage(message)) {
                 if (conf.debugEnabled) {
