@@ -2409,16 +2409,9 @@ class TelegramMenuManager(
                     // Проверяем статус игроков синхронно на основном потоке
                     Bukkit.getScheduler().runTask(plugin, Runnable {
                         allPlayers.chunked(2).forEach { chunk ->
-                            val row = chunk.mapNotNull { lowerPlayerName ->
+                            val row = chunk.map { lowerPlayerName ->
                                 // Получаем оригинальное имя с правильным регистром
                                 val originalName = ZTele.mgr.getOriginalPlayerName(lowerPlayerName)
-                                val offlinePlayer = Bukkit.getOfflinePlayer(originalName)
-                                
-                                // Пропускаем игроков, которые никогда не заходили на сервер
-                                if (!offlinePlayer.hasPlayedBefore() && Bukkit.getPlayerExact(originalName) == null) {
-                                    return@mapNotNull null
-                                }
-                                
                                 val isOnline = Bukkit.getPlayerExact(originalName) != null
                                 val statusEmoji = if (isOnline) "🟢" else "🔴"
                                 org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton().apply {
@@ -2427,9 +2420,7 @@ class TelegramMenuManager(
                                     callbackData = "${CallbackData.PLAYER_SELECT}:$originalName".withUserId(userId)
                                 }
                             }
-                            if (row.isNotEmpty()) {
-                                buttons.add(row)
-                            }
+                            buttons.add(row)
                         }
                         buttons.add(listOf(
                             org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton().apply {
