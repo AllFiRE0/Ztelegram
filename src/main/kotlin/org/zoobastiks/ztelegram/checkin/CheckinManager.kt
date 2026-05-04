@@ -151,7 +151,7 @@ class CheckinManager(private val plugin: ZTele) {
     fun mergeAccounts(playerName: String, telegramId: Long) {
         val tgKey = "tg_$telegramId"
         val tgData = getPlayerData(tgKey) ?: return
-        val playerData = getPlayerData(playerName)
+        val playerData = getPlayerData(playerName.lowercase())
         
         val newPoints = (playerData?.points ?: 0) + tgData.points
         val newTotalEarned = (playerData?.totalEarned ?: 0) + tgData.totalEarned
