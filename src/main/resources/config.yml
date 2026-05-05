@@ -299,7 +299,7 @@ chat:
     reply:
       enabled: true
       max-length: 60
-      format: "<aqua>↪</aqua> <#a1d1e6>[Telegram] %username%</#a1d1e6> <gray>→ %target%(%message%)</gray> <dark_gray>›</dark_gray> <gray>%reply_message%</gray>"
+      format: "<aqua>↪</aqua> <reset><#597773>[<#00cc9b><bold>ᴛᴇʟᴇɢʀᴀᴍ<reset><#597773>]<reset> <#a1d1e6>%username%</#a1d1e6><reset> <dark_gray>→ %target%(%message%)</dark_gray> <dark_gray>›</dark_gray> <gray>%reply_message%</gray>"
       strip-prefixes:
         - "`%player%` ›"
       notification:
