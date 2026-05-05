@@ -1110,6 +1110,9 @@ class TelegramMenuManager(
                         // Получаем данные репутации (как в команде /player)
                         val repData = ZTele.reputation.getReputationData(originalName)
                         val reputation = repData.totalReputation.toString()
+						// Данные чек-ина
+                        val checkinPoints = ZTele.checkinManager.getPoints(originalName)
+                        val checkinStreak = ZTele.checkinManager.getStreak(originalName)
                         val reputationPositive = repData.positiveRep.toString()
                         val reputationNegative = repData.negativeRep.toString()
                         val reputationLevel = repData.reputationLevel.emoji + " " + repData.reputationLevel.displayName
@@ -1117,6 +1120,8 @@ class TelegramMenuManager(
                         
                         val context = PlaceholderEngine.createCustomContext(mapOf(
                             "player" to originalName,
+                            "checkin_points" to checkinPoints.toString(),
+                            "checkin_streak" to checkinStreak.toString(),
                             "gender" to gender,
                             "balance" to balance,
                             "online" to onlineStatus,
