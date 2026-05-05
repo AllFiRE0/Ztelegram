@@ -1490,18 +1490,24 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
         if (conf.mainChannelChatEnabled && conf.chatTelegramToMinecraftEnabled) {
             val playerName = mgr.getPlayerByTelegramId(userId.toString()) ?: username
             
-            // Обработка текста с учётом reply
             val finalText = if (conf.chatReplyEnabled && replyToMessage != null) {
                 val repliedMsg = replyToMessage
                 val repliedUsername = repliedMsg.from.userName ?: repliedMsg.from.firstName
-                val repliedText = repliedMsg.text ?: ""
+                var repliedText = repliedMsg.text ?: ""
+                
+                for (prefix in conf.chatReplyStripPrefixes) {
+                    if (repliedText.startsWith(prefix)) {
+                        repliedText = repliedText.removePrefix(prefix).trim()
+                        break
+                    }
+                }
+                
                 val shortText = if (repliedText.length > conf.chatReplyMaxLength) {
                     repliedText.take(conf.chatReplyMaxLength) + "..."
                 } else {
                     repliedText
                 }
                 
-                // Уведомление игроку если его отметили
                 val repliedPlayerName = mgr.getPlayerByTelegramId(repliedMsg.from.id.toString())
                 if (conf.chatReplyNotificationEnabled && repliedPlayerName != null) {
                     val targetPlayer = Bukkit.getPlayerExact(repliedPlayerName)
@@ -1527,11 +1533,11 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     .replace("%username%", playerName)
                     .replace("%target%", repliedUsername)
                     .replace("%message%", shortText)
+                    .replace("%reply_message%", text)
             } else {
                 text
             }
             
-            // Определяем, в какой чат отправлять
             val currentChatId = currentChatIdContext.get() ?: conf.mainChannelId
             val (baseChatId, topicId) = parseChatId(currentChatId)
             
