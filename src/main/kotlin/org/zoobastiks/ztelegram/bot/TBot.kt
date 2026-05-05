@@ -4918,7 +4918,7 @@ $topList
                 plugin.logger.info("   - Rewards list size: ${conf.balanceTopRewardsList.size}")
                 if (conf.balanceTopRewardsList.isNotEmpty()) {
                     plugin.logger.info("   - Available rewards:")
-                    conf.balanceTopRewardsList.forEach { (reward: TConf.RewardConfig) ->
+                    conf.balanceTopRewardsList.forEach { reward ->
                         plugin.logger.info("     * ${reward.name} (${reward.commands.size} commands)")
                     }
                 }
@@ -4974,6 +4974,7 @@ $topList
             plugin.logger.warning("Error sending auto balance top: ${e.message}")
         }
     }
+    
     /**
      * Выдает награды игроку
      */
