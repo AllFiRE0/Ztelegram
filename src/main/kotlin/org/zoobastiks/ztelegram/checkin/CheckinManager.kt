@@ -149,23 +149,33 @@ class CheckinManager(private val plugin: ZTele) {
     }
 
     fun checkinForGame(playerName: String): CheckinResult {
-        val result = checkin(playerName)
-        return if (result.success) {
-            result.copy(message = ZTele.conf.checkinMessageIngameSuccess
-                .replace("%points%", result.points.toString())
-                .replace("%total%", result.totalPoints.toString())
-                .replace("%streak%", result.streak.toString())
-                .replace("%cooldown%", "${ZTele.conf.checkinCooldownHours}ч")
-                .replace("%currency%", ZTele.conf.checkinCurrencyName)
-            )
-        } else {
-            result.copy(message = ZTele.conf.checkinMessageIngameCooldown
-                .replace("%time%", result.message.replace(Regex(".*?(\\d+ч \\d+м).*".toRegex()), "$1"))
-                .replace("%points%", result.totalPoints.toString())
-                .replace("%streak%", result.streak.toString())
-                .replace("%currency%", ZTele.conf.checkinCurrencyName)
-            )
+        val now = LocalDateTime.now()
+        val data = getPlayerData(playerName)
+
+        if (data?.lastCheckin != null) {
+            val diff = Duration.between(data.lastCheckin, now)
+            if (diff.toHours() < ZTele.conf.checkinCooldownHours) {
+                val remaining = Duration.ofHours(ZTele.conf.checkinCooldownHours.toLong()).minus(diff)
+                val h = remaining.toHours()
+                val m = remaining.toMinutes() % 60
+                return CheckinResult(false, 0, data.points, data.streak,
+                    ZTele.conf.checkinMessageIngameCooldown
+                        .replace("%time%", "${h}ч ${m}м")
+                        .replace("%points%", data.points.toString())
+                        .replace("%streak%", data.streak.toString())
+                        .replace("%currency%", ZTele.conf.checkinCurrencyName)
+                )
+            }
         }
+
+        val result = checkin(playerName)
+        return result.copy(message = ZTele.conf.checkinMessageIngameSuccess
+            .replace("%points%", result.points.toString())
+            .replace("%total%", result.totalPoints.toString())
+            .replace("%streak%", result.streak.toString())
+            .replace("%cooldown%", "${ZTele.conf.checkinCooldownHours}ч")
+            .replace("%currency%", ZTele.conf.checkinCurrencyName)
+        )
     }
 
     fun mergeAccounts(playerName: String, telegramId: Long) {
