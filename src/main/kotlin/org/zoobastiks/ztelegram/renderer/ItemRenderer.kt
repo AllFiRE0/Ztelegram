@@ -89,7 +89,7 @@ class ItemRenderer {
 
     private fun drawItemName(g: Graphics2D, item: ItemStack): String {
         val fullName = if (item.itemMeta?.hasDisplayName() == true) {
-            plainSerializer.serialize(item.itemMeta.displayName())
+            item.itemMeta.displayName
         } else {
             ItemTranslator.translateItem(item.type.name)
         }
@@ -115,9 +115,8 @@ class ItemRenderer {
         g.font = MinecraftFontLoader.getFont(14f)
         var currentYOffset = textYOffset
         for (line in lore) {
-            val text = plainSerializer.serialize(line)
             g.color = Color.decode("#AAAAAA")
-            g.drawString(text, margin, currentYOffset)
+            g.drawString(line, margin, currentYOffset)
             currentYOffset += 20
         }
         return currentYOffset
