@@ -45,7 +45,7 @@ class CheckinCommand(private val plugin: ZTele) : CommandExecutor {
         }
 
         Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
-            val result = ZTele.checkinManager.checkin(sender.name)
+            val result = ZTele.checkinManager.checkinForGame(sender.name)
             Bukkit.getScheduler().runTask(plugin, Runnable {
                 sender.sendMessage(result.message)
             })
