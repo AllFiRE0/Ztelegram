@@ -581,6 +581,9 @@ class TConf(private val plugin: ZTele) {
     // Rendering
     var rendererEnabled: Boolean = true
     var rendererTranslationsFile: String = "translation.json"
+    var rendererKeywordsItem: List<String> = listOf("[item]")
+    var rendererKeywordsInventory: List<String> = listOf("[inv]")
+    var rendererKeywordsEnderchest: List<String> = listOf("[ender]")
 
     // Error messages
     var errorsNoAdminPermission: String = "❌ **Команда недоступна.**\n🚷 Вы не являетесь администратором.\n\n❤️ IP сервера: `Zoobastiks.20tps.name`\n\n✏️ Просмотр команд  » `/help`"
@@ -1343,6 +1346,9 @@ class TConf(private val plugin: ZTele) {
         
         rendererEnabled = conf.getBoolean("renderer.enabled", true)
         rendererTranslationsFile = conf.getString("renderer.translations_file", "translation.json") ?: "translation.json"
+        rendererKeywordsItem = conf.getStringList("renderer.keywords.item").takeIf { it.isNotEmpty() } ?: listOf("[item]")
+        rendererKeywordsInventory = conf.getStringList("renderer.keywords.inventory").takeIf { it.isNotEmpty() } ?: listOf("[inv]")
+        rendererKeywordsEnderchest = conf.getStringList("renderer.keywords.enderchest").takeIf { it.isNotEmpty() } ?: listOf("[ender]")
 
         // Error messages
         errorsNoAdminPermission = conf.getString("commands.errors.no-admin-permission", errorsNoAdminPermission) ?: errorsNoAdminPermission
