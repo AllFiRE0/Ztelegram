@@ -4911,14 +4911,16 @@ $topList
             sendMarkdownMessage(getTargetChatId(getStatisticsChannelId()), message, conf.balanceTopAutoDeleteSeconds)
 
             // Логируем информацию о наградах для отладки
-            plugin.logger.info("💰 Balance top rewards check:")
-            plugin.logger.info("   - Rewards enabled: ${conf.balanceTopRewardsEnabled}")
-            plugin.logger.info("   - Top balances count: ${topBalances.size}")
-            plugin.logger.info("   - Rewards list size: ${conf.balanceTopRewardsList.size}")
-            if (conf.balanceTopRewardsList.isNotEmpty()) {
-                plugin.logger.info("   - Available rewards:")
-                conf.balanceTopRewardsList.forEach { reward ->
-                    plugin.logger.info("     * ${reward.name} (${reward.commands.size} commands)")
+            if (conf.debugEnabled) {
+                plugin.logger.info("💰 Balance top rewards check:")
+                plugin.logger.info("   - Rewards enabled: ${conf.balanceTopRewardsEnabled}")
+                plugin.logger.info("   - Top balances count: ${topBalances.size}")
+                plugin.logger.info("   - Rewards list size: ${conf.balanceTopRewardsList.size}")
+                if (conf.balanceTopRewardsList.isNotEmpty()) {
+                    plugin.logger.info("   - Available rewards:")
+                    conf.balanceTopRewardsList.forEach { (reward: TConf.RewardConfig) ->
+                        plugin.logger.info("     * ${reward.name} (${reward.commands.size} commands)")
+                    }
                 }
             }
 
