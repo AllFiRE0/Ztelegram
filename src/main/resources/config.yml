@@ -528,24 +528,9 @@ checkin:
     success: "§aОчки чекина для игрока §e%player% §aсброшены!"
     not_found: "§cИгрок §e%player% §cне найден в базе чекинов!"
     
-  # 📱 Настройки кнопки в меню
-  menu:
-    # Текст кнопки в главном меню
-    button_text: "🎯 Отметиться"
-    # Текст меню чек-ина
-    menu_text: |
-      🎯 **Ежедневная отметка**
-      
-      Привет, %user%!
-      
-      Отметок: **%points%** %currency%
-      Серия: **%streak%** дней подряд
-      
-      Нажмите кнопку чтобы отметиться!
-      
-  # 💬 Сообщения
+  # 💬 Сообщения в телеграм и в чате игры
   messages:
-    # Успешная отметка
+    # Успешная отметка (Telegram)
     success: |
       ✅ **Отметка принята!**
       
@@ -554,7 +539,7 @@ checkin:
       💰 Всего: **%total%** %currency%
       ⏰ Следующая отметка через: %cooldown%
       
-    # Ошибка - кулдаун
+    # Ошибка - кулдаун (Telegram)
     cooldown: |
       ⏰ **Вы уже отмечались!**
       
@@ -562,7 +547,7 @@ checkin:
       ⚡ Отметок: **%points%**
       🔥 Серия: **%streak%** дней подряд
       
-    # Информация о балансе
+    # Информация о балансе (Telegram)
     info: |
       🎯 **Информация об отметках**
       
@@ -570,6 +555,27 @@ checkin:
       📊 Всего заработано: **%total_earned%** %currency%
       🔥 Текущая серия: **%streak%** дней
       ⏰ Следующая отметка через: %next_checkin%
+
+    # Успешная отметка (Игра)
+    ingame_success: |
+      <gradient:#FFD700:#FFA500>〔Чек-ин〕</gradient> <gradient:#A6EB0F:#00FF00>✅ Отметка принята!</gradient>
+      <gradient:#FFA500:#FFD700>🎁 Получено: <white>%points%</white> %currency%</gradient>
+      <gradient:#FFA500:#FFD700>🔥 Серия: <white>%streak%</white> дней</gradient>
+      <gradient:#FFA500:#FFD700>💰 Всего: <white>%total%</white> %currency%</gradient>
+
+    # Ошибка - кулдаун (Игра)
+    ingame_cooldown: |
+      <gradient:#FFD700:#FFA500>〔Чек-ин〕</gradient> <gradient:#FF5733:#FF0000>⏰ Вы уже отмечались!</gradient>
+      <gradient:#FFA500:#FFD700>Следующая отметка через: <white>%time%</white></gradient>
+      <gradient:#FFA500:#FFD700>⚡ Отметок: <white>%points%</white></gradient>
+      <gradient:#FFA500:#FFD700>🔥 Серия: <white>%streak%</white> дней</gradient>
+
+    # Информация (Игра)
+    ingame_info: |
+      <gradient:#FFD700:#FFA500>〔Чек-ин〕</gradient> <gradient:#A6EB0F:#00FF00>🎯 Информация об отметках</gradient>
+      <gradient:#FFA500:#FFD700>⚡ Отметок: <white>%points%</white></gradient>
+      <gradient:#FFA500:#FFD700>📊 Всего заработано: <white>%total_earned%</white> %currency%</gradient>
+      <gradient:#FFA500:#FFD700>🔥 Серия: <white>%streak%</white> дней</gradient>
 
 # ═══════════════════════════════════════════════════════════════════════════════
 # 📝 НАСТРОЙКИ КАНАЛА РЕГИСТРАЦИИ
