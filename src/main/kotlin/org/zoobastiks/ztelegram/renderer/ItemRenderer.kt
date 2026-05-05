@@ -98,13 +98,13 @@ class ItemRenderer {
     }
 
     private fun drawColoredString(g: Graphics2D, text: String, x: Int, y: Int, defaultColor: Color) {
-        val cleanText = text.replace("&", "§")
+        val cleanText = text
         val parts = cleanText.split(Regex("(?=&[0-9a-fA-F#])|(?=§[0-9a-fA-F#])"))
         
         var currentX = x
         for (part in parts) {
             when {
-                part.matches(Regex("^[&§]#[0-9a-fA-F]{6}.*").replace("&", "§")) -> {
+                part.matches(Regex("^[§&]#[0-9a-fA-F]{6}.*")) -> {
                     // HEX цвет
                     val hex = part.substring(1, 8)  // §#RRGGBB
                     g.color = Color.decode("0x${hex.substring(1)}")
