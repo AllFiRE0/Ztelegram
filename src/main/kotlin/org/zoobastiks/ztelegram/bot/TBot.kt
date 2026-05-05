@@ -1488,31 +1488,67 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
         }
 
         if (conf.mainChannelChatEnabled && conf.chatTelegramToMinecraftEnabled) {
-            // Получаем связанный игровой ник, если пользователь зарегистрирован
             val playerName = mgr.getPlayerByTelegramId(userId.toString()) ?: username
             
-            // Определяем, в какой чат отправлять (по chatId откуда пришло сообщение)
+            // Обработка текста с учётом reply
+            val finalText = if (conf.chatReplyEnabled && message.isReply && message.replyToMessage != null) {
+                val repliedMsg = message.replyToMessage
+                val repliedUsername = repliedMsg.from.userName ?: repliedMsg.from.firstName
+                val repliedText = repliedMsg.text ?: ""
+                val shortText = if (repliedText.length > conf.chatReplyMaxLength) {
+                    repliedText.take(conf.chatReplyMaxLength) + "..."
+                } else {
+                    repliedText
+                }
+                
+                // Уведомление игроку если его отметили
+                val repliedPlayerName = mgr.getPlayerByTelegramId(repliedMsg.from.id.toString())
+                if (conf.chatReplyNotificationEnabled && repliedPlayerName != null) {
+                    val targetPlayer = Bukkit.getPlayerExact(repliedPlayerName)
+                    if (targetPlayer != null && targetPlayer.isOnline) {
+                        val notification = conf.chatReplyNotificationMessage
+                            .replace("%username%", playerName)
+                        when (conf.chatReplyNotificationType) {
+                            "actionbar" -> targetPlayer.sendActionBar(
+                                net.kyori.adventure.text.Component.text(notification)
+                            )
+                            "title" -> {
+                                val parts = notification.split("\\n")
+                                val title = parts.getOrNull(0) ?: ""
+                                val subtitle = parts.getOrNull(1) ?: ""
+                                targetPlayer.sendTitle(title, subtitle, 10, 70, 20)
+                            }
+                            else -> targetPlayer.sendMessage(notification)
+                        }
+                    }
+                }
+                
+                conf.chatReplyFormat
+                    .replace("%username%", playerName)
+                    .replace("%target%", repliedUsername)
+                    .replace("%message%", shortText)
+            } else {
+                text
+            }
+            
+            // Определяем, в какой чат отправлять
             val currentChatId = currentChatIdContext.get() ?: conf.mainChannelId
             val (baseChatId, topicId) = parseChatId(currentChatId)
             
-            // Ищем чат в game_chats по chatId и topicId
             var targetChat = ZTele.chatManager.getChats().find { 
                 it.chatId.toString() == baseChatId && it.topicId == (topicId ?: 0)
             }
             
             if (targetChat == null && conf.gameChatsEnabled) {
-                // Если не нашли - берем дефолтный
                 targetChat = ZTele.chatManager.getDefaultChat()
             }
             
             if (targetChat != null && targetChat.enabled) {
-                // Отправляем в правильный игровой чат через ChatManager
-                ZTele.chatManager.sendToGame(targetChat, playerName, text)
+                ZTele.chatManager.sendToGame(targetChat, playerName, finalText)
             } else {
-                // Fallback на старую систему
                 val context = PlaceholderEngine.createCustomContext(mapOf(
                     "username" to playerName,
-                    "message" to text
+                    "message" to finalText
                 ))
                 val formattedMessage = PlaceholderEngine.process(conf.chatTelegramToMinecraftFormat, context)
                     .replace("\\n", "\n")
