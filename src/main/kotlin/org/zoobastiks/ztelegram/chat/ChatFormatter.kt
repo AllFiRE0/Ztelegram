@@ -19,6 +19,14 @@ object ChatFormatter {
         }
     }
 
+    fun formatMinecraftMessage(message: String): Component {
+        return try {
+            miniMessage.deserialize(message)
+        } catch (e: Exception) {
+            Component.text(message)
+        }
+    }
+
     fun formatTelegramMessage(format: String, username: String, text: String): String {
         return format
             .replace("<username>", username)
