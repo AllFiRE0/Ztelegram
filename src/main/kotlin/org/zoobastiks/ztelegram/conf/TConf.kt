@@ -214,6 +214,12 @@ class TConf(private val plugin: ZTele) {
     var chatTelegramToMinecraftEnabled: Boolean = true
     var chatTelegramToMinecraftFormat: String = "〔Телеграм〕%username%: %message%"
     var chatPlayerChatEnabled: Boolean = true
+    var chatReplyEnabled: Boolean = true
+    var chatReplyMaxLength: Int = 60
+    var chatReplyFormat: String = "<aqua>↪</aqua> <#a1d1e6>%username%</#a1d1e6> <gray>→ %target%:</gray> <gray>%message%</gray>"
+    var chatReplyNotificationEnabled: Boolean = true
+    var chatReplyNotificationType: String = "actionbar"
+    var chatReplyNotificationMessage: String = ""
 
     // События игроков
     var chatPlayerJoinEnabled: Boolean = true
@@ -1603,6 +1609,12 @@ class TConf(private val plugin: ZTele) {
 
         // Пересылка игрового чата
         chatPlayerChatEnabled = conf.getBoolean("chat.player-chat.enabled", chatPlayerChatEnabled)
+        chatReplyEnabled = conf.getBoolean("chat.telegram-to-minecraft.reply.enabled", true)
+        chatReplyMaxLength = conf.getInt("chat.telegram-to-minecraft.reply.max-length", 60)
+        chatReplyFormat = conf.getString("chat.telegram-to-minecraft.reply.format", chatReplyFormat) ?: chatReplyFormat
+        chatReplyNotificationEnabled = conf.getBoolean("chat.telegram-to-minecraft.reply.notification.enabled", true)
+        chatReplyNotificationType = conf.getString("chat.telegram-to-minecraft.reply.notification.type", "actionbar") ?: "actionbar"
+        chatReplyNotificationMessage = conf.getString("chat.telegram-to-minecraft.reply.notification.message", "") ?: ""
 
         // События игроков - вход
         chatPlayerJoinEnabled = conf.getBoolean("chat.player-events.join.enabled", chatPlayerJoinEnabled)
