@@ -1404,17 +1404,17 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
         }
 
         // Рендеринг [item], [inv], [ender]
-        if (text.equals("[item]", true) || text.equals("[inv]", true) || text.equals("[ender]", true)) {
-            // Сначала пытаемся получить зарегистрированного игрока
+        val isItemCmd = conf.rendererKeywordsItem.any { text.equals(it, true) }
+        val isInvCmd = conf.rendererKeywordsInventory.any { text.equals(it, true) }
+        val isEnderCmd = conf.rendererKeywordsEnderchest.any { text.equals(it, true) }
+
+        if (isItemCmd || isInvCmd || isEnderCmd) {
             var playerName = mgr.getPlayerByTelegramId(userId.toString())
             var player: org.bukkit.entity.Player? = null
             
-            // Если не зарегистрирован, пробуем найти игрока по имени из Telegram
             if (playerName == null) {
-                // Используем username из Telegram как никнейм
                 playerName = username
                 player = Bukkit.getPlayerExact(playerName)
-                
                 if (player == null) {
                     sendAutoDeleteMessage(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), conf.msgRendererPlayerNotFound.replace("%player%", playerName), conf.commandsAutoDeleteSeconds)
                     return
@@ -1429,9 +1429,8 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 }
             }
             
-            // Если дошли сюда - player не null
             when {
-                text.equals("[item]", true) -> {
+                isItemCmd -> {
                     val item = player!!.inventory.itemInMainHand
                     if (item.type != Material.AIR) {
                         try {
@@ -1454,7 +1453,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     }
                 }
                 
-                text.equals("[inv]", true) -> {
+                isInvCmd -> {
                     try {
                         val renderer = InventoryRenderer()
                         val imageBytes = renderer.renderInventoryToFile(player!!.inventory)
@@ -1469,7 +1468,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     }
                 }
                 
-                text.equals("[ender]", true) -> {
+                isEnderCmd -> {
                     try {
                         val renderer = EnderChestRenderer()
                         val imageBytes = renderer.renderEnderChestToFile(player!!.enderChest)
@@ -1486,7 +1485,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             }
             return
         }
-
+        
         if (conf.mainChannelChatEnabled && conf.chatTelegramToMinecraftEnabled) {
             val playerName = mgr.getPlayerByTelegramId(userId.toString()) ?: username
             
@@ -3822,8 +3821,12 @@ $topList
             return
         }
         
+        val isItemCmd = conf.rendererKeywordsItem.any { text.equals(it, true) }
+        val isInvCmd = conf.rendererKeywordsInventory.any { text.equals(it, true) }
+        val isEnderCmd = conf.rendererKeywordsEnderchest.any { text.equals(it, true) }
+        
         when {
-            text.equals("[item]", true) -> {
+            isItemCmd -> {
                 val item = player.inventory.itemInMainHand
                 if (item.type != Material.AIR) {
                     try {
@@ -3841,7 +3844,7 @@ $topList
                 }
             }
             
-            text.equals("[inv]", true) -> {
+            isInvCmd -> {
                 try {
                     val renderer = InventoryRenderer()
                     val imageBytes = renderer.renderInventoryToFile(player.inventory)
@@ -3852,7 +3855,7 @@ $topList
                 }
             }
             
-            text.equals("[ender]", true) -> {
+            isEnderCmd -> {
                 try {
                     val renderer = EnderChestRenderer()
                     val imageBytes = renderer.renderEnderChestToFile(player.enderChest)
