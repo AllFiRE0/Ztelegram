@@ -2047,6 +2047,9 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                 val reputationNegative = repData.negativeRep.toString()
                 val reputationLevel = repData.reputationLevel.emoji + " " + repData.reputationLevel.displayName
                 val reputationPercent = String.format("%.1f", repData.positivePercentage)
+                // Данные чек-ина
+                val checkinPoints = ZTele.checkinManager.getPoints(playerName)
+                val checkinStreak = ZTele.checkinManager.getStreak(playerName)
 
                 if (conf.debugEnabled) {
                     plugin.logger.info("[TBot] /player DEBUG - playerName: '$playerName'")
@@ -2060,6 +2063,8 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
                 val context = PlaceholderEngine.createCustomContext(mapOf(
                     "player" to playerName,
+                    "checkin_points" to checkinPoints.toString(),
+                    "checkin_streak" to checkinStreak.toString(),
                     "gender" to gender,
                     "balance" to balance,
                     "online" to onlineStatus,
