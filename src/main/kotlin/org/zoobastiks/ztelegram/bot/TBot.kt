@@ -1437,7 +1437,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                             val renderer = ItemRenderer()
                             val imageBytes = renderer.renderItemToFile(item).first
                             val itemName = if (item.itemMeta?.hasDisplayName() == true) {
-                                item.itemMeta.displayName
+                                item.itemMeta.displayName.replace(Regex("§[0-9a-fk-orA-FK-OR]"), "").replace(Regex("&[0-9a-fk-orA-FK-OR]"), "")
                             } else {
                                 item.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
                             }
@@ -3837,7 +3837,7 @@ $topList
                         val renderer = ItemRenderer()
                         val imageBytes = renderer.renderItemToFile(item).first
                         val itemName = if (item.itemMeta?.hasDisplayName() == true) {
-                            item.itemMeta.displayName
+                            item.itemMeta.displayName.replace(Regex("§[0-9a-fk-orA-FK-OR]"), "").replace(Regex("&[0-9a-fk-orA-FK-OR]"), "")
                         } else {
                             item.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
                         }
