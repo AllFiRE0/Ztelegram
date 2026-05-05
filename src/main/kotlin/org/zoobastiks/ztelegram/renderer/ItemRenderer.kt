@@ -1,6 +1,5 @@
 package org.zoobastiks.ztelegram.renderer
 
-
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.EnchantmentStorageMeta
@@ -9,7 +8,6 @@ import java.awt.image.BufferedImage
 import java.awt.Color
 import java.awt.Graphics2D
 import java.io.ByteArrayOutputStream
-import java.util.*
 
 class ItemRenderer {
     private val width = 250
@@ -18,10 +16,9 @@ class ItemRenderer {
     private val backgroundColor = "#210939"
     private val borderColor = "#1A0B1A"
     private val enchantmentColor = "#A7A7A7"
+    private val plainSerializer = PlainTextComponentSerializer.plainText()
 
     fun renderItemToFile(item: ItemStack): Pair<ByteArray, String> {
-
-        // Default rendering for non-map items
         val texture = loadTexture(item)
         val height = calculateDynamicHeight(item)
         val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
@@ -31,16 +28,11 @@ class ItemRenderer {
         drawTexture(g, texture)
         val itemName = drawItemName(g, item)
 
-        // Calculate textYOffset for enchantments and durability
-        var textYOffset = imageScale + margin + 50 // Start below the item name
+        var textYOffset = imageScale + margin + 50
 
-        // Draw enchantments and update textYOffset
+        textYOffset = drawLore(g, item, textYOffset)
         textYOffset = drawEnchantments(g, item, textYOffset)
-
-        // Draw durability below enchantments (or item name if no enchantments)
         drawDurability(g, item, textYOffset)
-
-        // Draw stack size
         drawStackSize(g, item)
 
         g.dispose()
@@ -56,31 +48,27 @@ class ItemRenderer {
         return when (val itemName = item.type.name.lowercase()) {
             "potion", "splash_potion", "lingering_potion" ->
                 loadPotionTexture(item, this.javaClass) ?: loadAwkwardPotionTexture(this.javaClass)
-
             "filled_map" -> loadMapTexture(this.javaClass)
             else -> loadItemTexture(itemName, this.javaClass)
         }
     }
 
-
     private fun calculateDynamicHeight(item: ItemStack): Int {
-        var height = imageScale + margin * 2 + 30 // Base height for texture and name
+        var height = imageScale + margin * 2 + 30
+
+        val lore = item.itemMeta?.lore
+        if (lore != null) height += 20 * lore.size
 
         val enchantments = if (item.itemMeta is EnchantmentStorageMeta) {
             (item.itemMeta as EnchantmentStorageMeta).storedEnchants
         } else {
             item.enchantments
         }
+        if (enchantments.isNotEmpty()) height += 20 * enchantments.size
 
-        if (enchantments.isNotEmpty()) {
-            height += 20 * enchantments.size // Add space for enchantments
-        }
+        if (item.itemMeta is org.bukkit.inventory.meta.Damageable && item.type.maxDurability > 0) height += 20
 
-        if (item.itemMeta is org.bukkit.inventory.meta.Damageable && item.type.maxDurability > 0) {
-            height += 20 // Add space for durability
-        }
-
-        return height + margin // Add bottom margin
+        return height + margin
     }
 
     private fun drawBackground(g: Graphics2D, height: Int) {
@@ -101,7 +89,7 @@ class ItemRenderer {
 
     private fun drawItemName(g: Graphics2D, item: ItemStack): String {
         val fullName = if (item.itemMeta?.hasDisplayName() == true) {
-            item.itemMeta.displayName
+            plainSerializer.serialize(item.itemMeta.displayName())
         } else {
             ItemTranslator.translateItem(item.type.name)
         }
@@ -118,6 +106,21 @@ class ItemRenderer {
             item.type.name.contains("totem", ignoreCase = true) || item.type.name.contains("book", ignoreCase = true) -> Color.YELLOW
             else -> Color.WHITE
         }
+    }
+
+    private fun drawLore(g: Graphics2D, item: ItemStack, textYOffset: Int): Int {
+        val lore = item.itemMeta?.lore ?: return textYOffset
+        if (lore.isEmpty()) return textYOffset
+
+        g.font = MinecraftFontLoader.getFont(14f)
+        var currentYOffset = textYOffset
+        for (line in lore) {
+            val text = plainSerializer.serialize(line)
+            g.color = Color.decode("#AAAAAA")
+            g.drawString(text, margin, currentYOffset)
+            currentYOffset += 20
+        }
+        return currentYOffset
     }
 
     private fun drawEnchantments(g: Graphics2D, item: ItemStack, textYOffset: Int): Int {
@@ -144,8 +147,7 @@ class ItemRenderer {
         if (item.itemMeta is org.bukkit.inventory.meta.Damageable && item.type.maxDurability > 0) {
             g.font = MinecraftFontLoader.getFont(14f)
             g.color = Color.WHITE
-            val currentDurability =
-                item.type.maxDurability - (item.itemMeta as org.bukkit.inventory.meta.Damageable).damage
+            val currentDurability = item.type.maxDurability - (item.itemMeta as org.bukkit.inventory.meta.Damageable).damage
             g.drawString("Durability: $currentDurability/${item.type.maxDurability}", margin, textYOffset)
         }
     }
@@ -155,9 +157,8 @@ class ItemRenderer {
             g.font = MinecraftFontLoader.getFont(20f)
             g.color = Color.WHITE
             val stackSize = "x ${item.amount}"
-            // val textWidth = g.fontMetrics.stringWidth(stackSize)
-            val x = margin + imageScale + 10 // Position to the right of the texture with a small margin
-            val y = margin + imageScale - 5 // Slightly higher to align with the texture
+            val x = margin + imageScale + 10
+            val y = margin + imageScale - 5
             g.drawString(stackSize, x, y)
         }
     }
