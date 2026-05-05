@@ -1492,7 +1492,12 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             
             val finalText = if (conf.chatReplyEnabled && replyToMessage != null) {
                 val repliedMsg = replyToMessage
-                val repliedUsername = repliedMsg.from.userName ?: repliedMsg.from.firstName
+                val repliedUsername = if (repliedMsg.from.userName == botUsername) {
+                    val match = Regex("^`([^`]+)`").find(repliedMsg.text ?: "")
+                    match?.groupValues?.get(1) ?: "—"
+                } else {
+                    repliedMsg.from.userName ?: repliedMsg.from.firstName
+                }
                 var repliedText = repliedMsg.text ?: ""
                 
                 for (prefix in conf.chatReplyStripPrefixes) {
