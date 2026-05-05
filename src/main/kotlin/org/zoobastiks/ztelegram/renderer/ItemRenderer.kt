@@ -1,6 +1,5 @@
 package org.zoobastiks.ztelegram.renderer
 
-import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.EnchantmentStorageMeta
 import javax.imageio.ImageIO
@@ -16,7 +15,15 @@ class ItemRenderer {
     private val backgroundColor = "#210939"
     private val borderColor = "#1A0B1A"
     private val enchantmentColor = "#A7A7A7"
-    private val plainSerializer = PlainTextComponentSerializer.plainText()
+
+    private val colorMap = mapOf(
+        '0' to Color.BLACK, '1' to Color(0, 0, 170), '2' to Color(0, 170, 0),
+        '3' to Color(0, 170, 170), '4' to Color(170, 0, 0), '5' to Color(170, 0, 170),
+        '6' to Color(255, 170, 0), '7' to Color(170, 170, 170), '8' to Color(85, 85, 85),
+        '9' to Color(85, 85, 255), 'a' to Color(85, 255, 85), 'b' to Color(85, 255, 255),
+        'c' to Color(255, 85, 85), 'd' to Color(255, 85, 255), 'e' to Color(255, 255, 85),
+        'f' to Color.WHITE
+    )
 
     fun renderItemToFile(item: ItemStack): Pair<ByteArray, String> {
         val texture = loadTexture(item)
@@ -87,6 +94,24 @@ class ItemRenderer {
         }
     }
 
+    private fun drawColoredString(g: Graphics2D, text: String, x: Int, y: Int, defaultColor: Color) {
+        val cleanText = text.replace("§", "&")
+        val parts = cleanText.split(Regex("(?=&[0-9a-fA-F])"))
+        
+        var currentX = x
+        for (part in parts) {
+            if (part.startsWith("&") && part.length >= 2) {
+                g.color = colorMap[part[1].lowercaseChar()] ?: defaultColor
+                g.drawString(part.substring(2), currentX, y)
+                currentX += g.fontMetrics.stringWidth(part.substring(2))
+            } else {
+                g.color = defaultColor
+                g.drawString(part, currentX, y)
+                currentX += g.fontMetrics.stringWidth(part)
+            }
+        }
+    }
+
     private fun drawItemName(g: Graphics2D, item: ItemStack): String {
         val fullName = if (item.itemMeta?.hasDisplayName() == true) {
             item.itemMeta.displayName
@@ -95,8 +120,7 @@ class ItemRenderer {
         }
         val nameColor = determineNameColor(item)
         g.font = MinecraftFontLoader.getFont(16f)
-        g.color = nameColor
-        g.drawString(fullName, margin, imageScale + margin + 30)
+        drawColoredString(g, fullName, margin, imageScale + margin + 30, nameColor)
         return fullName
     }
 
@@ -115,8 +139,7 @@ class ItemRenderer {
         g.font = MinecraftFontLoader.getFont(14f)
         var currentYOffset = textYOffset
         for (line in lore) {
-            g.color = Color.decode("#AAAAAA")
-            g.drawString(line, margin, currentYOffset)
+            drawColoredString(g, line, margin, currentYOffset, Color.decode("#AAAAAA"))
             currentYOffset += 20
         }
         return currentYOffset
