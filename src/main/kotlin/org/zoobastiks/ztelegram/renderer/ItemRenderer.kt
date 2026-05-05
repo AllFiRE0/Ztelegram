@@ -134,7 +134,7 @@ class ItemRenderer {
         val nameColor = determineNameColor(item)
         g.font = MinecraftFontLoader.getFont(16f)
         drawColoredString(g, fullName, margin, imageScale + margin + 30, nameColor)
-        return fullName
+        return fullName.replace(Regex("[§&][0-9a-fk-orA-FK-OR]"), "")  // ← добавить очистку
     }
 
     private fun determineNameColor(item: ItemStack): Color {
