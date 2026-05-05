@@ -4924,16 +4924,19 @@ $topList
                 }
             }
 
-            // Выдаем награду топ-1 игроку
             if (conf.balanceTopRewardsEnabled && topBalances.isNotEmpty() && conf.balanceTopRewardsList.isNotEmpty()) {
                 val topPlayer = topBalances[0]
 
-                plugin.logger.info("🎁 Giving reward to top player: ${topPlayer.first}")
+                if (conf.debugEnabled) {
+                    plugin.logger.info("🎁 Giving reward to top player: ${topPlayer.first}")
+                }
 
                 // Выбираем случайную награду
                 val randomReward = conf.balanceTopRewardsList.random()
 
-                plugin.logger.info("🎲 Selected reward: ${randomReward.name}")
+                if (conf.debugEnabled) {
+                    plugin.logger.info("🎲 Selected reward: ${randomReward.name}")
+                }
 
                 // Выдаем награду
                 giveRewards(topPlayer.first, randomReward.commands, mapOf(
@@ -4949,23 +4952,28 @@ $topList
                 ))
                 val rewardMessage = PlaceholderEngine.process(conf.balanceTopRewardsNotification, rewardContext)
 
-                plugin.logger.info("📤 Sending reward notification: $rewardMessage")
+                if (conf.debugEnabled) {
+                    plugin.logger.info("📤 Sending reward notification: $rewardMessage")
+                }
 
                 sendAutoDeleteMessage(getTargetChatId(getStatisticsChannelId()), rewardMessage, conf.balanceTopRewardsNotificationAutoDeleteSeconds)
 
-                plugin.logger.info("✅ Reward notification sent successfully")
+                if (conf.debugEnabled) {
+                    plugin.logger.info("✅ Reward notification sent successfully")
+                }
             } else {
-                plugin.logger.warning("⚠️ Reward not given - one of conditions failed:")
-                plugin.logger.warning("   - Rewards enabled: ${conf.balanceTopRewardsEnabled}")
-                plugin.logger.warning("   - Has top players: ${topBalances.isNotEmpty()}")
-                plugin.logger.warning("   - Has rewards list: ${conf.balanceTopRewardsList.isNotEmpty()}")
+                if (conf.debugEnabled) {
+                    plugin.logger.warning("⚠️ Reward not given - one of conditions failed:")
+                    plugin.logger.warning("   - Rewards enabled: ${conf.balanceTopRewardsEnabled}")
+                    plugin.logger.warning("   - Has top players: ${topBalances.isNotEmpty()}")
+                    plugin.logger.warning("   - Has rewards list: ${conf.balanceTopRewardsList.isNotEmpty()}")
+                }
             }
 
         } catch (e: Exception) {
             plugin.logger.warning("Error sending auto balance top: ${e.message}")
         }
     }
-
     /**
      * Выдает награды игроку
      */
@@ -4984,14 +4992,16 @@ $topList
 
                     // Выполняем команду от имени консоли
                     Bukkit.dispatchCommand(Bukkit.getConsoleSender(), processedCommand)
-                    plugin.logger.info("Executed reward command: $processedCommand")
+                    if (conf.debugEnabled) {
+                        plugin.logger.info("Executed reward command: $processedCommand")
+                    }
                 }
             } catch (e: Exception) {
                 plugin.logger.warning("Error executing reward commands for $playerName: ${e.message}")
             }
         })
     }
-
+    
     /**
      * Проверяет, имеет ли игрок исключенные права
      */
