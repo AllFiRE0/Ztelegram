@@ -148,6 +148,26 @@ class CheckinManager(private val plugin: ZTele) {
         }
     }
 
+    fun checkinForGame(playerName: String): CheckinResult {
+        val result = checkin(playerName)
+        return if (result.success) {
+            result.copy(message = ZTele.conf.checkinMessageIngameSuccess
+                .replace("%points%", result.points.toString())
+                .replace("%total%", result.totalPoints.toString())
+                .replace("%streak%", result.streak.toString())
+                .replace("%cooldown%", "${ZTele.conf.checkinCooldownHours}ч")
+                .replace("%currency%", ZTele.conf.checkinCurrencyName)
+            )
+        } else {
+            result.copy(message = ZTele.conf.checkinMessageIngameCooldown
+                .replace("%time%", result.message.replace(Regex(".*?(\\d+ч \\d+м).*".toRegex()), "$1"))
+                .replace("%points%", result.totalPoints.toString())
+                .replace("%streak%", result.streak.toString())
+                .replace("%currency%", ZTele.conf.checkinCurrencyName)
+            )
+        }
+    }
+
     fun mergeAccounts(playerName: String, telegramId: Long) {
         val tgKey = "tg_$telegramId"
         val tgData = getPlayerData(tgKey) ?: return
