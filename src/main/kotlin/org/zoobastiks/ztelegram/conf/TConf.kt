@@ -217,6 +217,7 @@ class TConf(private val plugin: ZTele) {
     var chatReplyEnabled: Boolean = true
     var chatReplyMaxLength: Int = 60
     var chatReplyFormat: String = "<aqua>↪</aqua> <#a1d1e6>%username%</#a1d1e6> <gray>→ %target%:</gray> <gray>%message%</gray>"
+    var chatReplyStripPrefixes: List<String> = listOf("`%player%` ›")
     var chatReplyNotificationEnabled: Boolean = true
     var chatReplyNotificationType: String = "actionbar"
     var chatReplyNotificationMessage: String = ""
@@ -1615,6 +1616,8 @@ class TConf(private val plugin: ZTele) {
         chatReplyNotificationEnabled = conf.getBoolean("chat.telegram-to-minecraft.reply.notification.enabled", true)
         chatReplyNotificationType = conf.getString("chat.telegram-to-minecraft.reply.notification.type", "actionbar") ?: "actionbar"
         chatReplyNotificationMessage = conf.getString("chat.telegram-to-minecraft.reply.notification.message", "") ?: ""
+        chatReplyStripPrefixes = conf.getStringList("chat.telegram-to-minecraft.reply.strip-prefixes")
+            .takeIf { it.isNotEmpty() } ?: listOf("`%player%` ›")
 
         // События игроков - вход
         chatPlayerJoinEnabled = conf.getBoolean("chat.player-events.join.enabled", chatPlayerJoinEnabled)
