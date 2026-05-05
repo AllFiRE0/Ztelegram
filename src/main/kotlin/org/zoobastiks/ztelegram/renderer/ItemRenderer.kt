@@ -98,19 +98,29 @@ class ItemRenderer {
     }
 
     private fun drawColoredString(g: Graphics2D, text: String, x: Int, y: Int, defaultColor: Color) {
-        val cleanText = text.replace("&", "§")  // ← заменил & на §
-        val parts = cleanText.split(Regex("(?=§[0-9a-fA-F])"))
+        val cleanText = text.replace("&", "§")
+        val parts = cleanText.split(Regex("(?=&[0-9a-fA-F#])|(?=§[0-9a-fA-F#])"))
         
         var currentX = x
         for (part in parts) {
-            if (part.startsWith("§") && part.length >= 2) {
-                g.color = colorMap[part[1].lowercaseChar()] ?: defaultColor
-                g.drawString(part.substring(2), currentX, y)
-                currentX += g.fontMetrics.stringWidth(part.substring(2))
-            } else {
-                g.color = defaultColor
-                g.drawString(part, currentX, y)
-                currentX += g.fontMetrics.stringWidth(part)
+            when {
+                part.matches(Regex("^[&§]#[0-9a-fA-F]{6}.*").replace("&", "§")) -> {
+                    // HEX цвет
+                    val hex = part.substring(1, 8)  // §#RRGGBB
+                    g.color = Color.decode("0x${hex.substring(1)}")
+                    g.drawString(part.substring(8), currentX, y)
+                    currentX += g.fontMetrics.stringWidth(part.substring(8))
+                }
+                part.startsWith("§") && part.length >= 2 -> {
+                    g.color = colorMap[part[1].lowercaseChar()] ?: defaultColor
+                    g.drawString(part.substring(2), currentX, y)
+                    currentX += g.fontMetrics.stringWidth(part.substring(2))
+                }
+                else -> {
+                    g.color = defaultColor
+                    g.drawString(part, currentX, y)
+                    currentX += g.fontMetrics.stringWidth(part)
+                }
             }
         }
     }
