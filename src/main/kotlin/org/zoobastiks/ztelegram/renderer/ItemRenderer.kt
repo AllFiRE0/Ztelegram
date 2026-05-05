@@ -64,7 +64,10 @@ class ItemRenderer {
         var height = imageScale + margin * 2 + 30
 
         val lore = item.itemMeta?.lore
-        if (lore != null) height += 20 * lore.size
+        if (lore != null) {
+            height += 20  // отступ перед лором
+            height += 20 * lore.size
+        }
 
         val enchantments = if (item.itemMeta is EnchantmentStorageMeta) {
             (item.itemMeta as EnchantmentStorageMeta).storedEnchants
@@ -95,12 +98,12 @@ class ItemRenderer {
     }
 
     private fun drawColoredString(g: Graphics2D, text: String, x: Int, y: Int, defaultColor: Color) {
-        val cleanText = text.replace("§", "&")
-        val parts = cleanText.split(Regex("(?=&[0-9a-fA-F])"))
+        val cleanText = text.replace("&", "§")  // ← заменил & на §
+        val parts = cleanText.split(Regex("(?=§[0-9a-fA-F])"))
         
         var currentX = x
         for (part in parts) {
-            if (part.startsWith("&") && part.length >= 2) {
+            if (part.startsWith("§") && part.length >= 2) {
                 g.color = colorMap[part[1].lowercaseChar()] ?: defaultColor
                 g.drawString(part.substring(2), currentX, y)
                 currentX += g.fontMetrics.stringWidth(part.substring(2))
@@ -138,7 +141,15 @@ class ItemRenderer {
 
         g.font = MinecraftFontLoader.getFont(14f)
         var currentYOffset = textYOffset
+        
+        // Пустая строка перед описанием
+        currentYOffset += 20
+        
         for (line in lore) {
+            if (line.isEmpty()) {
+                currentYOffset += 20  // рендерит пустые строки
+                continue
+            }
             drawColoredString(g, line, margin, currentYOffset, Color.decode("#AAAAAA"))
             currentYOffset += 20
         }
