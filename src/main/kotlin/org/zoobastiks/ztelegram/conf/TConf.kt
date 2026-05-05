@@ -216,7 +216,7 @@ class TConf(private val plugin: ZTele) {
     var chatPlayerChatEnabled: Boolean = true
     var chatReplyEnabled: Boolean = true
     var chatReplyMaxLength: Int = 60
-    var chatReplyFormat: String = "<aqua>↪</aqua> <#a1d1e6>%username%</#a1d1e6> <gray>→ %target%:</gray> <gray>%message%</gray>"
+    var chatReplyFormat: String = "<aqua>↪</aqua> <#a1d1e6>[Telegram] %username%</#a1d1e6> <gray>→ %target%(%message%)</gray> <dark_gray>›</dark_gray> <gray>%reply_message%</gray>"
     var chatReplyStripPrefixes: List<String> = listOf("`%player%` ›")
     var chatReplyNotificationEnabled: Boolean = true
     var chatReplyNotificationType: String = "actionbar"
