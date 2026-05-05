@@ -559,6 +559,9 @@ class TConf(private val plugin: ZTele) {
     var checkinMessageSuccess: String = ""
     var checkinMessageCooldown: String = ""
     var checkinMessageInfo: String = ""
+    var checkinMessageIngameSuccess: String = ""
+    var checkinMessageIngameCooldown: String = ""
+    var checkinMessageIngameInfo: String = ""
     
     // Command send
     var sendCommandEnabled: Boolean = true
@@ -1319,6 +1322,9 @@ class TConf(private val plugin: ZTele) {
         checkinMessageSuccess = conf.getString("checkin.messages.success", "") ?: ""
         checkinMessageCooldown = conf.getString("checkin.messages.cooldown", "") ?: ""
         checkinMessageInfo = conf.getString("checkin.messages.info", "") ?: ""
+        checkinMessageIngameSuccess = conf.getString("checkin.messages.ingame_success", "") ?: ""
+        checkinMessageIngameCooldown = conf.getString("checkin.messages.ingame_cooldown", "") ?: ""
+        checkinMessageIngameInfo = conf.getString("checkin.messages.ingame_info", "") ?: ""
         checkinRequireRegistration = conf.getBoolean("checkin.require_registration", true)
         
         sendCommandEnabled = conf.getBoolean("commands.send.enabled", true)
