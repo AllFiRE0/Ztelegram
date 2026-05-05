@@ -1492,7 +1492,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             
             // Обработка текста с учётом reply
             val finalText = if (conf.chatReplyEnabled && replyToMessage != null) {
-                val repliedMsg = message.replyToMessage
+                val repliedMsg = replyToMessage
                 val repliedUsername = repliedMsg.from.userName ?: repliedMsg.from.firstName
                 val repliedText = repliedMsg.text ?: ""
                 val shortText = if (repliedText.length > conf.chatReplyMaxLength) {
