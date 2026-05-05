@@ -296,6 +296,14 @@ chat:
     # Формат: %username% - имя в Telegram, %message% - текст
     format: "<aqua>■</aqua> <reset><#597773>[<#00cc9b><bold>ᴛᴇʟᴇɢʀᴀᴍ<reset><#597773>]<reset> <#a1d1e6>%username%<reset> <dark_gray>›</dark_gray> <gray>%message%</gray>"
   # 📢 Уведомления о входе/выходе игроков
+    reply:
+      enabled: true
+      max-length: 60
+      format: "<aqua>↪</aqua> <#a1d1e6>%username%</#a1d1e6> <gray>→ %target%:</gray> <gray>%message%</gray>"
+      notification:
+        enabled: true
+        type: "actionbar"
+        message: "<gradient:#FFD700:#FFA500>%username% отвечает на ваше сообщение</gradient>"
   player-events:
     # Вход на сервер
     join:
