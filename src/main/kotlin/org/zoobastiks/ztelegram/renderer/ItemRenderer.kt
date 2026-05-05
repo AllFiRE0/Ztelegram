@@ -100,7 +100,11 @@ class ItemRenderer {
     }
 
     private fun drawItemName(g: Graphics2D, item: ItemStack): String {
-        val fullName = ItemTranslator.translateItem(item.type.name)
+        val fullName = if (item.itemMeta?.hasDisplayName() == true) {
+            item.itemMeta.displayName
+        } else {
+            ItemTranslator.translateItem(item.type.name)
+        }
         val nameColor = determineNameColor(item)
         g.font = MinecraftFontLoader.getFont(16f)
         g.color = nameColor
