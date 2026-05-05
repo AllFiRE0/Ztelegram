@@ -1436,7 +1436,11 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                         try {
                             val renderer = ItemRenderer()
                             val imageBytes = renderer.renderItemToFile(item).first
-                            val itemName = item.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+                            val itemName = if (item.itemMeta?.hasDisplayName() == true) {
+                                item.itemMeta.displayName
+                            } else {
+                                item.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+                            }
                             val caption = "$playerName: [$itemName]"
                             val currentChatId = currentChatIdContext.get() ?: conf.mainChannelId
                             sendPhoto(currentChatId, imageBytes, caption)
@@ -3832,7 +3836,11 @@ $topList
                     try {
                         val renderer = ItemRenderer()
                         val imageBytes = renderer.renderItemToFile(item).first
-                        val itemName = item.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+                        val itemName = if (item.itemMeta?.hasDisplayName() == true) {
+                            item.itemMeta.displayName
+                        } else {
+                            item.type.name.lowercase().replace('_', ' ').replaceFirstChar { it.uppercase() }
+                        }
                         val caption = "$playerName: [$itemName]"
                         sendPhoto(getResponseChatId(currentChatIdContext.get() ?: conf.mainChannelId), imageBytes, caption)
                     } catch (e: Exception) {
