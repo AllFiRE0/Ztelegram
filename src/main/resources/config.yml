@@ -299,7 +299,9 @@ chat:
     reply:
       enabled: true
       max-length: 60
-      format: "<aqua>↪</aqua> <#a1d1e6>%username%</#a1d1e6> <gray>→ %target%:</gray> <gray>%message%</gray>"
+      format: "<aqua>↪</aqua> <#a1d1e6>[Telegram] %username%</#a1d1e6> <gray>→ %target%(%message%)</gray> <dark_gray>›</dark_gray> <gray>%reply_message%</gray>"
+      strip-prefixes:
+        - "`%player%` ›"
       notification:
         enabled: true
         type: "actionbar"
