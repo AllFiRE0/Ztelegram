@@ -61,7 +61,11 @@ class ChatManager(private val plugin: ZTele) {
 
     fun sendToGame(chat: ChatConfig, username: String, message: String) {
         if (!ZTele.conf.gameChatsTelegramToMinecraft) return
-        val component = ChatFormatter.formatMinecraftMessageFromTG(chat.minecraftFormat, username, message)
+        val component = if (message.contains("↪")) {
+            ChatFormatter.formatMinecraftMessage(message)
+        } else {
+            ChatFormatter.formatMinecraftMessageFromTG(chat.minecraftFormat, username, message)
+        }
         Bukkit.getServer().sendMessage(component)
     }
 
