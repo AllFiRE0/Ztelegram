@@ -77,7 +77,9 @@ class StatsManager(private val plugin: ZTele) {
             saveStats()
         }
         
-        plugin.logger.info("Recorded join for player: $playerName ($playerUuid)")
+        if (ZTele.conf.debugEnabled) {
+            plugin.logger.info("Recorded join for player: $playerName ($playerUuid)")
+        }
     }
     
     /**
@@ -101,7 +103,9 @@ class StatsManager(private val plugin: ZTele) {
                         (currentTime ?: 0) + sessionDuration 
                     }
                 
-                plugin.logger.info("Recorded session for $playerName: $sessionDuration minutes")
+                if (ZTele.conf.debugEnabled) {
+                    plugin.logger.info("Recorded session for $playerName: $sessionDuration minutes")
+                }
                 
                 // Сохраняем в БД или файл
                 if (ZTele.conf.databaseEnabled && ZTele.database.databaseExists()) {
