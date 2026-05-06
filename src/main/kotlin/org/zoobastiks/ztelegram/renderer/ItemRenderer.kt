@@ -8,6 +8,7 @@ import java.awt.image.BufferedImage
 import java.awt.Color
 import java.awt.Graphics2D
 import java.io.ByteArrayOutputStream
+import org.zoobastiks.ztelegram.ZTele
 
 class ItemRenderer {
     private val width = 250
@@ -26,7 +27,12 @@ class ItemRenderer {
         'f' to Color.WHITE
     )
 
+    private var baseFont: Font = Font("SansSerif", Font.PLAIN, 16)
+    private var currentFont: Font = baseFont
+
     fun renderItemToFile(item: ItemStack): Pair<ByteArray, String> {
+        debugLog("Starting item rendering for: ${item.type}")
+        
         val texture = loadTexture(item)
         val height = calculateDynamicHeight(item)
         val image = BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB)
@@ -49,6 +55,8 @@ class ItemRenderer {
         ImageIO.write(image, "png", outputStream)
         val imageBytes = outputStream.toByteArray()
         outputStream.close()
+        
+        debugLog("Item rendering completed. Image size: ${imageBytes.size} bytes")
         return Pair(imageBytes, itemName)
     }
 
@@ -99,6 +107,8 @@ class ItemRenderer {
     }
 
     private fun drawColoredString(g: Graphics2D, text: String, x: Int, y: Int, defaultColor: Color) {
+        debugLog("Drawing colored string: '${text.take(50)}...' at x=$x, y=$y")
+        
         var cleanText = text.replace(Regex("§x(§[0-9a-fA-F]){6}"), "")
         
         // Конвертируем названия цветов в HEX {#white} → {#FFFFFF}
@@ -122,6 +132,7 @@ class ItemRenderer {
             val hex2 = cmiMatch.groupValues[3]
             val content = cmiMatch.groupValues[2]
             val replacement = "<gradient:#$hex1:#$hex2>$content</gradient>"
+            debugLog("Converting CMI gradient: {#$hex1>}$content{#$hex2<}")
             cleanText = cleanText.replace(cmiMatch.value, replacement)
             cmiMatch = cmiGradientPattern.find(cleanText)
         }
@@ -134,6 +145,7 @@ class ItemRenderer {
             val lastColor = cmiJsonMatches.last().groupValues[1]
             val allText = cmiJsonMatches.joinToString("") { it.groupValues[2] }
             val replacement = "<gradient:#$firstColor:#$lastColor>$allText</gradient>"
+            debugLog("Converting CMI JSON gradient from #$firstColor to #$lastColor")
             val fullMatch = "\\[${cmiJsonMatches.joinToString(",") { Regex.escape(it.value) }}\\]"
             cleanText = cleanText.replace(Regex(fullMatch), replacement)
         }
@@ -154,11 +166,13 @@ class ItemRenderer {
             val c1 = Color.decode("#$hex1")
             val c2 = Color.decode("#$hex2")
             
+            debugLog("Found gradient: #$hex1 to #$hex2 with text: '${content.take(30)}'")
+            
             val before = cleanText.substring(0, matchResult.range.first)
             val after = cleanText.substring(matchResult.range.last + 1)
             
             val beforeSegments = before.split(Regex("(?=&[0-9a-fA-Fk-oK-OrR#])|(?=§[0-9a-fA-Fk-oK-OrR#])"))
-            currentX = drawSegments(g, beforeSegments, currentX, y, defaultColor, g.font)
+            currentX = drawSegments(g, beforeSegments, currentX, y, defaultColor, baseFont)
             
             val cleanContent = content.replace(Regex("[§&][0-9a-fA-Fk-oK-OrR]"), "")
             val textWidth = g.fontMetrics.stringWidth(cleanContent)
@@ -178,10 +192,8 @@ class ItemRenderer {
         }
         
         val segments = cleanText.split(Regex("(?=&[0-9a-fA-Fk-oK-OrR#])|(?=§[0-9a-fA-Fk-oK-OrR#])"))
-        drawSegments(g, segments, currentX, y, defaultColor, g.font)
+        drawSegments(g, segments, currentX, y, defaultColor, baseFont)
     }
-
-    private var currentFont: Font = Font("SansSerif", Font.PLAIN, 16)
 
     private fun drawSegments(g: Graphics2D, segments: List<String>, x: Int, y: Int, defaultColor: Color, baseFont: Font): Int {
         var currentX = x
@@ -194,7 +206,12 @@ class ItemRenderer {
             when {
                 segment.matches(Regex("^[§&]#[0-9a-fA-F]{6}.*")) -> {
                     val hex = segment.substring(2, 8)
-                    try { currentColor = Color.decode("#$hex") } catch (e: Exception) {}
+                    try { 
+                        currentColor = Color.decode("#$hex")
+                        debugLog("Applied HEX color: #$hex")
+                    } catch (e: Exception) {
+                        debugLog("Failed to decode HEX color: #$hex - ${e.message}")
+                    }
                     g.color = currentColor
                     g.font = currentFont
                     g.drawString(segment.substring(8), currentX, y)
@@ -203,17 +220,38 @@ class ItemRenderer {
                 (segment.startsWith("§") || segment.startsWith("&")) && segment.length >= 2 -> {
                     val code = segment[1].lowercaseChar()
                     when (code) {
-                        'l' -> currentFont = currentFont.deriveFont(Font.BOLD)
-                        'o' -> currentFont = currentFont.deriveFont(Font.ITALIC)
-                        'n' -> {}
-                        'm' -> {}
+                        'l' -> {
+                            currentFont = currentFont.deriveFont(Font.BOLD)
+                            debugLog("Applied BOLD formatting")
+                        }
+                        'o' -> {
+                            currentFont = currentFont.deriveFont(Font.ITALIC)
+                            debugLog("Applied ITALIC formatting")
+                        }
+                        'n' -> {
+                            debugLog("Strikethrough code ignored (not supported in AWT)")
+                        }
+                        'm' -> {
+                            debugLog("Magic code ignored (not supported in AWT)")
+                        }
                         'r' -> {
                             currentFont = baseFont
                             currentColor = defaultColor
+                            debugLog("Reset formatting and color")
                         }
-                        'k' -> {}
-                        '#' -> {}
-                        else -> currentColor = colorMap[code] ?: defaultColor
+                        'k' -> {
+                            debugLog("Obfuscation code ignored (not supported in AWT)")
+                        }
+                        '#' -> {
+                            debugLog("HEX color code indicator")
+                        }
+                        else -> {
+                            val newColor = colorMap[code]
+                            if (newColor != null) {
+                                currentColor = newColor
+                                debugLog("Applied Minecraft color code: &$code")
+                            }
+                        }
                     }
                     if (code != '#' && segment.length > 2) {
                         g.color = currentColor
@@ -239,8 +277,12 @@ class ItemRenderer {
         } else {
             ItemTranslator.translateItem(item.type.name)
         }
+        debugLog("Item name: '$fullName'")
+        
         val nameColor = determineNameColor(item)
         g.font = MinecraftFontLoader.getFont(16f)
+        baseFont = g.font
+        currentFont = baseFont
         drawColoredString(g, fullName, margin, imageScale + margin + 30, nameColor)
         return fullName
             .replace(Regex("§x(§[0-9a-fA-F]){6}"), "")
@@ -249,9 +291,18 @@ class ItemRenderer {
 
     private fun determineNameColor(item: ItemStack): Color {
         return when {
-            item.itemMeta?.hasEnchants() == true || (item.itemMeta is EnchantmentStorageMeta && (item.itemMeta as EnchantmentStorageMeta).storedEnchants.isNotEmpty()) -> Color.CYAN
-            item.type.name.contains("totem", ignoreCase = true) || item.type.name.contains("book", ignoreCase = true) -> Color.YELLOW
-            else -> Color.WHITE
+            item.itemMeta?.hasEnchants() == true || (item.itemMeta is EnchantmentStorageMeta && (item.itemMeta as EnchantmentStorageMeta).storedEnchants.isNotEmpty()) -> {
+                debugLog("Enchanted item detected - using CYAN color")
+                Color.CYAN
+            }
+            item.type.name.contains("totem", ignoreCase = true) || item.type.name.contains("book", ignoreCase = true) -> {
+                debugLog("Totem or Book detected - using YELLOW color")
+                Color.YELLOW
+            }
+            else -> {
+                debugLog("Regular item - using WHITE color")
+                Color.WHITE
+            }
         }
     }
 
@@ -259,16 +310,20 @@ class ItemRenderer {
         val lore = item.itemMeta?.lore ?: return textYOffset
         if (lore.isEmpty()) return textYOffset
 
+        debugLog("Drawing lore with ${lore.size} lines")
         g.font = MinecraftFontLoader.getFont(14f)
+        baseFont = g.font
+        currentFont = baseFont
         var currentYOffset = textYOffset
         
         currentYOffset += 20
         
-        for (line in lore) {
+        for ((index, line) in lore.withIndex()) {
             if (line.isEmpty()) {
                 currentYOffset += 20
                 continue
             }
+            debugLog("Lore line $index: '${line.take(50)}'")
             drawColoredString(g, line, margin, currentYOffset, Color.decode("#AAAAAA"))
             currentYOffset += 20
         }
@@ -282,11 +337,15 @@ class ItemRenderer {
             item.enchantments
         }
         if (enchantments.isNotEmpty()) {
+            debugLog("Drawing ${enchantments.size} enchantments")
             g.font = MinecraftFontLoader.getFont(14f)
+            baseFont = g.font
+            currentFont = baseFont
             g.color = Color.decode(enchantmentColor)
             var currentYOffset = textYOffset
             for ((enchantment, level) in enchantments) {
                 val name = ItemTranslator.translateEnchantment(enchantment.key.key, level)
+                debugLog("Enchantment: $name (level $level)")
                 g.drawString(name, margin, currentYOffset)
                 currentYOffset += 20
             }
@@ -298,9 +357,13 @@ class ItemRenderer {
     private fun drawDurability(g: Graphics2D, item: ItemStack, textYOffset: Int) {
         if (item.itemMeta is org.bukkit.inventory.meta.Damageable && item.type.maxDurability > 0) {
             g.font = MinecraftFontLoader.getFont(14f)
+            baseFont = g.font
+            currentFont = baseFont
             g.color = Color.WHITE
             val currentDurability = item.type.maxDurability - (item.itemMeta as org.bukkit.inventory.meta.Damageable).damage
-            g.drawString("Durability: $currentDurability/${item.type.maxDurability}", margin, textYOffset)
+            val durabilityText = "Durability: $currentDurability/${item.type.maxDurability}"
+            debugLog(durabilityText)
+            g.drawString(durabilityText, margin, textYOffset)
         }
     }
 
@@ -311,7 +374,14 @@ class ItemRenderer {
             val stackSize = "x ${item.amount}"
             val x = margin + imageScale + 10
             val y = margin + imageScale - 5
+            debugLog("Stack size: ${item.amount}")
             g.drawString(stackSize, x, y)
+        }
+    }
+
+    private fun debugLog(message: String) {
+        if (ZTele.conf.debugEnabled) {
+            ZTele.instance.logger.info("[ItemRenderer] $message")
         }
     }
 }
