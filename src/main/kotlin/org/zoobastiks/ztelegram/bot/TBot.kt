@@ -1491,6 +1491,15 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             }
             return
         }
+
+        // Применяем замены Telegram → Minecraft
+        var cleanedText = text
+        for ((pattern, replacement) in conf.chatReplacementsTelegramToMinecraft["regex"] ?: emptyMap()) {
+            cleanedText = cleanedText.replace(Regex(pattern), replacement)
+        }
+        for ((from, to) in conf.chatReplacementsTelegramToMinecraft["text"] ?: emptyMap()) {
+            cleanedText = cleanedText.replace(from, to)
+        }
         
         if (conf.mainChannelChatEnabled && conf.chatTelegramToMinecraftEnabled) {
             val playerName = mgr.getPlayerByTelegramId(userId.toString()) ?: username
@@ -3896,10 +3905,17 @@ $topList
             val targetChat = matchedChat ?: ZTele.chatManager.getDefaultChat()
 
             if (targetChat != null && targetChat.enabled) {
-                val processedMessage = if (targetChat.prefix.isNotEmpty() && chatMessage.startsWith(targetChat.prefix)) {
+                var processedMessage = if (targetChat.prefix.isNotEmpty() && chatMessage.startsWith(targetChat.prefix)) {
                     chatMessage.substring(targetChat.prefix.length).trim()
                 } else {
                     chatMessage
+                }
+                // Применяем замены Minecraft → Telegram
+                for ((pattern, replacement) in conf.chatReplacementsMinecraftToTelegram["regex"] ?: emptyMap()) {
+                    processedMessage = processedMessage.replace(Regex(pattern), replacement)
+                }
+                for ((from, to) in conf.chatReplacementsMinecraftToTelegram["text"] ?: emptyMap()) {
+                    processedMessage = processedMessage.replace(from, to)
                 }
 
                 val formattedMessage = targetChat.telegramFormat
