@@ -237,6 +237,8 @@ class TConf(private val plugin: ZTele) {
     var chatWhitelistNoRegistrationMessage: String = "❌ Вы не можете здесь написать.\\n\\n✅ Для регистрации вашего ника\\n🛜 Перейдите в тему https://t.me/ReZoobastik/309520\\n🌍 Введите там свой ник без пробелов и слэшей.\\n\\n❤️‍🔥 За регистрацию никнейма выдается награда.\\n💯 Она начисляется автоматически на ваш никнейм в игре."
     var chatBlacklistEnabled: Boolean = true
     var chatBlacklistBlockedMessage: String = "❌ Вы заблокированы и не можете отправлять сообщения на сервер!"
+    var chatReplacementsMinecraftToTelegram: Map<String, Map<String, String>> = mapOf("regex" to mapOf("\\{[^}]*\\}" to ""), "text" to emptyMap())
+    var chatReplacementsTelegramToMinecraft: Map<String, Map<String, String>> = mapOf("regex" to emptyMap(), "text" to emptyMap())
 
     // Настройки белого и черного списка
     var whitelistEnabled: Boolean = false
@@ -1622,6 +1624,10 @@ class TConf(private val plugin: ZTele) {
         chatReplyNotificationEnabled = conf.getBoolean("chat.telegram-to-minecraft.reply.notification.enabled", true)
         chatReplyNotificationType = conf.getString("chat.telegram-to-minecraft.reply.notification.type", "actionbar") ?: "actionbar"
         chatReplyNotificationMessage = conf.getString("chat.telegram-to-minecraft.reply.notification.message", "") ?: ""
+        val mtFile = conf.getString("chat.replacements.minecraft-to-telegram", "text-replacements.yml") ?: "text-replacements.yml"
+        val tmFile = conf.getString("chat.replacements.telegram-to-minecraft", "text-replacements.yml") ?: "text-replacements.yml"
+        chatReplacementsMinecraftToTelegram = loadReplacementFile(mtFile, "minecraft-to-telegram")
+        chatReplacementsTelegramToMinecraft = loadReplacementFile(tmFile, "telegram-to-minecraft")
         chatReplyStripPrefixes = conf.getStringList("chat.telegram-to-minecraft.reply.strip-prefixes")
             .takeIf { it.isNotEmpty() } ?: listOf("`%player%` ›")
 
@@ -2009,5 +2015,23 @@ class TConf(private val plugin: ZTele) {
             plugin.logger.severe("❌ [ReputationConfig] Ошибка при загрузке настроек репутации: ${e.message}")
             e.printStackTrace()
         }
+    }
+    
+    private fun loadReplacementFile(filename: String, section: String): Map<String, Map<String, String>> {
+        val file = File(plugin.dataFolder, filename)
+        if (!file.exists()) return mapOf("regex" to emptyMap(), "text" to emptyMap())
+        val config = YamlConfiguration.loadConfiguration(file)
+        
+        val regex = mutableMapOf<String, String>()
+        config.getConfigurationSection("$section.regex")?.getKeys(false)?.forEach { 
+            regex[it] = config.getString("$section.regex.$it") ?: "" 
+        }
+        
+        val text = mutableMapOf<String, String>()
+        config.getConfigurationSection("$section.text")?.getKeys(false)?.forEach { 
+            text[it] = config.getString("$section.text.$it") ?: "" 
+        }
+        
+        return mapOf("regex" to regex, "text" to text)
     }
 }
