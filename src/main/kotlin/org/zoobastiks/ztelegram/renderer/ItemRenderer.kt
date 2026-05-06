@@ -101,6 +101,19 @@ class ItemRenderer {
     private fun drawColoredString(g: Graphics2D, text: String, x: Int, y: Int, defaultColor: Color) {
         var cleanText = text.replace(Regex("§x(§[0-9a-fA-F]){6}"), "")
         
+        // Конвертируем названия цветов в HEX {#white} → {#FFFFFF}
+        val colorNames = mapOf(
+            "white" to "FFFFFF", "black" to "000000", "red" to "FF0000",
+            "green" to "00FF00", "blue" to "0000FF", "yellow" to "FFFF00",
+            "aqua" to "00FFFF", "pink" to "FFC0CB", "gray" to "808080",
+            "grey" to "808080", "orange" to "FFA500", "purple" to "800080"
+        )
+        cleanText = cleanText.replace(Regex("\\{#([a-zA-Z]+)\\}")) { match ->
+            val name = match.groupValues[1].lowercase()
+            val hex = colorNames[name] ?: "FFFFFF"
+            "{#$hex}"
+        }
+        
         // CMI градиент {#RRGGBB>}текст{#RRGGBB<}
         val cmiGradientPattern = Regex("\\{#([0-9a-fA-F]{6})>\\}([^\\{]*)\\{#([0-9a-fA-F]{6})<\\}")
         var cmiMatch = cmiGradientPattern.find(cleanText)
@@ -111,6 +124,18 @@ class ItemRenderer {
             val replacement = "<gradient:#$hex1:#$hex2>$content</gradient>"
             cleanText = cleanText.replace(cmiMatch.value, replacement)
             cmiMatch = cmiGradientPattern.find(cleanText)
+        }
+        
+        // CMI JSON [{color:"#RRGGBB",text:"символ"},...]
+        val cmiJsonPattern = Regex("\\{bold:[^,]*,color:\"#([0-9a-fA-F]{6})\"[^}]*text:\"([^\"]+)\"[^}]*\\}")
+        val cmiJsonMatches = cmiJsonPattern.findAll(cleanText).toList()
+        if (cmiJsonMatches.size > 1) {
+            val firstColor = cmiJsonMatches.first().groupValues[1]
+            val lastColor = cmiJsonMatches.last().groupValues[1]
+            val allText = cmiJsonMatches.joinToString("") { it.groupValues[2] }
+            val replacement = "<gradient:#$firstColor:#$lastColor>$allText</gradient>"
+            val fullMatch = "[${cmiJsonMatches.joinToString(",") { it.value }}]"
+            cleanText = cleanText.replace(fullMatch, replacement)
         }
         
         // MiniMessage <color:#RRGGBB>текст</color>
@@ -131,11 +156,9 @@ class ItemRenderer {
             val before = cleanText.substring(0, matchResult.range.first)
             val after = cleanText.substring(matchResult.range.last + 1)
             
-            // Рисуем всё что до градиента
             val beforeSegments = before.split(Regex("(?=&[0-9a-fA-Fk-oK-OrR#])|(?=§[0-9a-fA-Fk-oK-OrR#])"))
             var beforeX = drawSegments(g, beforeSegments, x, y, defaultColor, g.font)
             
-            // Рисуем градиент посимвольно
             val chars = content.toCharArray()
             for ((index, char) in chars.withIndex()) {
                 val ratio = if (chars.size > 1) index.toFloat() / (chars.size - 1) else 0f
@@ -148,12 +171,10 @@ class ItemRenderer {
                 beforeX += g.fontMetrics.stringWidth(char.toString())
             }
             
-            // Продолжаем с оставшимся текстом
             cleanText = after
             matchResult = gradientPattern.find(cleanText)
         }
         
-        // Рисуем оставшийся текст
         val segments = cleanText.split(Regex("(?=&[0-9a-fA-Fk-oK-OrR#])|(?=§[0-9a-fA-Fk-oK-OrR#])"))
         drawSegments(g, segments, x, y, defaultColor, g.font)
     }
@@ -182,8 +203,8 @@ class ItemRenderer {
                     when (code) {
                         'l' -> currentFont = currentFont.deriveFont(Font.BOLD)
                         'o' -> currentFont = currentFont.deriveFont(Font.ITALIC)
-                        'n' -> {} // подчёркнутый не поддерживается
-                        'm' -> {} // зачёркнутый не поддерживается
+                        'n' -> {}
+                        'm' -> {}
                         'r' -> {
                             currentFont = baseFont
                             currentColor = defaultColor
