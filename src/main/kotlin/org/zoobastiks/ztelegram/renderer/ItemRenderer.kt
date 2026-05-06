@@ -66,7 +66,7 @@ class ItemRenderer {
 
         val lore = item.itemMeta?.lore
         if (lore != null) {
-            height += 20  // отступ перед лором
+            height += 20
             height += 20 * lore.size
         }
 
@@ -99,18 +99,73 @@ class ItemRenderer {
     }
 
     private fun drawColoredString(g: Graphics2D, text: String, x: Int, y: Int, defaultColor: Color) {
-        val cleanText = text.replace(Regex("§x(§[0-9a-fA-F]){6}"), "")
-        val segments = cleanText.split(Regex("(?=&[0-9a-fA-Fk-oK-OrR#])|(?=§[0-9a-fA-Fk-oK-OrR#])"))
+        var cleanText = text.replace(Regex("§x(§[0-9a-fA-F]){6}"), "")
         
+        // MiniMessage <color:#RRGGBB>текст</color>
+        cleanText = cleanText.replace(Regex("<color:#([0-9a-fA-F]{6})>([^<]*)</color>")) { match ->
+            "&#${match.groupValues[1]}${match.groupValues[2]}"
+        }
+        
+        // MiniMessage <gradient:#RRGGBB:#RRGGBB>текст</gradient>
+        val gradientPattern = Regex("<gradient:#([0-9a-fA-F]{6}):#([0-9a-fA-F]{6})>([^<]*)</gradient>")
+        var matchResult = gradientPattern.find(cleanText)
+        while (matchResult != null) {
+            val hex1 = matchResult.groupValues[1]
+            val hex2 = matchResult.groupValues[2]
+            val content = matchResult.groupValues[3]
+            val c1 = Color.decode("#$hex1")
+            val c2 = Color.decode("#$hex2")
+            
+            val before = cleanText.substring(0, matchResult.range.first)
+            val after = cleanText.substring(matchResult.range.last + 1)
+            
+            // Рисуем всё что до градиента
+            val beforeSegments = before.split(Regex("(?=&[0-9a-fA-Fk-oK-OrR#])|(?=§[0-9a-fA-Fk-oK-OrR#])"))
+            var beforeX = drawSegments(g, beforeSegments, x, y, defaultColor, g.font)
+            
+            // Рисуем градиент посимвольно
+            val chars = content.toCharArray()
+            for ((index, char) in chars.withIndex()) {
+                val ratio = if (chars.size > 1) index.toFloat() / (chars.size - 1) else 0f
+                val r = (c1.red + (c2.red - c1.red) * ratio).toInt().coerceIn(0, 255)
+                val gr = (c1.green + (c2.green - c1.green) * ratio).toInt().coerceIn(0, 255)
+                val b = (c1.blue + (c2.blue - c1.blue) * ratio).toInt().coerceIn(0, 255)
+                g.color = Color(r, gr, b)
+                g.font = currentFont
+                g.drawString(char.toString(), beforeX, y)
+                beforeX += g.fontMetrics.stringWidth(char.toString())
+            }
+            
+            // Продолжаем с оставшимся текстом
+            cleanText = after
+            matchResult = gradientPattern.find(cleanText)
+        }
+        
+        // Рисуем оставшийся текст
+        val segments = cleanText.split(Regex("(?=&[0-9a-fA-Fk-oK-OrR#])|(?=§[0-9a-fA-Fk-oK-OrR#])"))
+        drawSegments(g, segments, x, y, defaultColor, g.font)
+    }
+
+    private var currentFont: Font = Font("SansSerif", Font.PLAIN, 16)
+
+    private fun drawSegments(g: Graphics2D, segments: List<String>, x: Int, y: Int, defaultColor: Color, baseFont: Font): Int {
         var currentX = x
         var currentColor = defaultColor
-        var currentFont = g.font
+        currentFont = baseFont
         
         for (segment in segments) {
             if (segment.isEmpty()) continue
             
             when {
-                segment.startsWith("§") || segment.startsWith("&") -> {
+                segment.matches(Regex("^[§&]#[0-9a-fA-F]{6}.*")) -> {
+                    val hex = segment.substring(2, 8)
+                    try { currentColor = Color.decode("#$hex") } catch (e: Exception) {}
+                    g.color = currentColor
+                    g.font = currentFont
+                    g.drawString(segment.substring(8), currentX, y)
+                    currentX += g.fontMetrics.stringWidth(segment.substring(8))
+                }
+                (segment.startsWith("§") || segment.startsWith("&")) && segment.length >= 2 -> {
                     val code = segment[1].lowercaseChar()
                     when (code) {
                         'l' -> currentFont = currentFont.deriveFont(Font.BOLD)
@@ -118,19 +173,19 @@ class ItemRenderer {
                         'n' -> currentFont = currentFont.deriveFont(Font.UNDERLINE)
                         'm' -> currentFont = currentFont.deriveFont(Font.STRIKETHROUGH)
                         'r' -> {
-                            currentFont = g.font
+                            currentFont = baseFont
                             currentColor = defaultColor
                         }
-                        'k' -> {} // обфусцированный — не поддерживается
-                        else -> {
-                            currentColor = colorMap[code] ?: defaultColor
-                        }
+                        'k' -> {}
+                        '#' -> {}
+                        else -> currentColor = colorMap[code] ?: defaultColor
                     }
-                }
-                segment.startsWith("#") && segment.length >= 7 -> {
-                    try {
-                        currentColor = Color.decode("0x${segment.substring(1, 7)}")
-                    } catch (e: Exception) {}
+                    if (code != '#' && segment.length > 2) {
+                        g.color = currentColor
+                        g.font = currentFont
+                        g.drawString(segment.substring(2), currentX, y)
+                        currentX += g.fontMetrics.stringWidth(segment.substring(2))
+                    }
                 }
                 else -> {
                     g.color = currentColor
@@ -140,6 +195,7 @@ class ItemRenderer {
                 }
             }
         }
+        return currentX
     }
 
     private fun drawItemName(g: Graphics2D, item: ItemStack): String {
@@ -151,7 +207,7 @@ class ItemRenderer {
         val nameColor = determineNameColor(item)
         g.font = MinecraftFontLoader.getFont(16f)
         drawColoredString(g, fullName, margin, imageScale + margin + 30, nameColor)
-        return fullName.replace(Regex("[§&][0-9a-fk-orA-FK-OR]"), "")  // ← добавить очистку
+        return fullName.replace(Regex("[§&][0-9a-fk-orA-FK-OR]"), "")
     }
 
     private fun determineNameColor(item: ItemStack): Color {
@@ -169,12 +225,11 @@ class ItemRenderer {
         g.font = MinecraftFontLoader.getFont(14f)
         var currentYOffset = textYOffset
         
-        // Пустая строка перед описанием
         currentYOffset += 20
         
         for (line in lore) {
             if (line.isEmpty()) {
-                currentYOffset += 20  // рендерит пустые строки
+                currentYOffset += 20
                 continue
             }
             drawColoredString(g, line, margin, currentYOffset, Color.decode("#AAAAAA"))
