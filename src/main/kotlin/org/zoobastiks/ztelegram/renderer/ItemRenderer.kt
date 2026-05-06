@@ -115,7 +115,7 @@ class ItemRenderer {
         }
         
         // CMI градиент {#RRGGBB>}текст{#RRGGBB<}
-        val cmiGradientPattern = Regex("\\{#([0-9a-fA-F]{6})>\\}([^\\{]*)\\{#([0-9a-fA-F]{6})<\\}")
+        val cmiGradientPattern = Regex("\\{#([0-9a-fA-F]{6})>\\}([^\\}]*)\\{#([0-9a-fA-F]{6})<\\}")
         var cmiMatch = cmiGradientPattern.find(cleanText)
         while (cmiMatch != null) {
             val hex1 = cmiMatch.groupValues[1]
@@ -134,8 +134,8 @@ class ItemRenderer {
             val lastColor = cmiJsonMatches.last().groupValues[1]
             val allText = cmiJsonMatches.joinToString("") { it.groupValues[2] }
             val replacement = "<gradient:#$firstColor:#$lastColor>$allText</gradient>"
-            val fullMatch = "[${cmiJsonMatches.joinToString(",") { it.value }}]"
-            cleanText = cleanText.replace(fullMatch, replacement)
+            val fullMatch = "\\[${cmiJsonMatches.joinToString(",") { Regex.escape(it.value) }}\\]"
+            cleanText = cleanText.replace(Regex(fullMatch), replacement)
         }
         
         // MiniMessage <color:#RRGGBB>текст</color>
@@ -145,6 +145,7 @@ class ItemRenderer {
         
         // MiniMessage <gradient:#RRGGBB:#RRGGBB>текст</gradient>
         val gradientPattern = Regex("<gradient:#([0-9a-fA-F]{6}):#([0-9a-fA-F]{6})>([^<]*)</gradient>")
+        var currentX = x
         var matchResult = gradientPattern.find(cleanText)
         while (matchResult != null) {
             val hex1 = matchResult.groupValues[1]
@@ -157,27 +158,27 @@ class ItemRenderer {
             val after = cleanText.substring(matchResult.range.last + 1)
             
             val beforeSegments = before.split(Regex("(?=&[0-9a-fA-Fk-oK-OrR#])|(?=§[0-9a-fA-Fk-oK-OrR#])"))
-            var beforeX = drawSegments(g, beforeSegments, x, y, defaultColor, g.font)
+            currentX = drawSegments(g, beforeSegments, currentX, y, defaultColor, g.font)
             
             val cleanContent = content.replace(Regex("[§&][0-9a-fA-Fk-oK-OrR]"), "")
             val textWidth = g.fontMetrics.stringWidth(cleanContent)
             val gradientPaint = java.awt.GradientPaint(
-                beforeX.toFloat(), 0f, c1,
-                (beforeX + textWidth).toFloat(), 0f, c2
+                currentX.toFloat(), 0f, c1,
+                (currentX + textWidth).toFloat(), 0f, c2
             )
             val oldPaint = g.paint
             g.paint = gradientPaint
             g.font = currentFont
-            g.drawString(cleanContent, beforeX, y)
+            g.drawString(cleanContent, currentX, y)
             g.paint = oldPaint
-            beforeX += textWidth
+            currentX += textWidth
             
             cleanText = after
             matchResult = gradientPattern.find(cleanText)
         }
         
         val segments = cleanText.split(Regex("(?=&[0-9a-fA-Fk-oK-OrR#])|(?=§[0-9a-fA-Fk-oK-OrR#])"))
-        drawSegments(g, segments, x, y, defaultColor, g.font)
+        drawSegments(g, segments, currentX, y, defaultColor, g.font)
     }
 
     private var currentFont: Font = Font("SansSerif", Font.PLAIN, 16)
