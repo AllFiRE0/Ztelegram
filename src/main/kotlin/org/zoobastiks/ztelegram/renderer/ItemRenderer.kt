@@ -27,6 +27,13 @@ class ItemRenderer {
         'f' to Color.WHITE
     )
 
+    private val colorNames = mapOf(
+        "white" to "FFFFFF", "black" to "000000", "red" to "FF0000",
+        "green" to "00FF00", "blue" to "0000FF", "yellow" to "FFFF00",
+        "aqua" to "00FFFF", "pink" to "FFC0CB", "gray" to "808080",
+        "grey" to "808080", "orange" to "FFA500", "purple" to "800080"
+    )
+
     private var baseFont: Font = Font("SansSerif", Font.PLAIN, 16)
     private var currentFont: Font = baseFont
 
@@ -106,23 +113,96 @@ class ItemRenderer {
         }
     }
 
+    private fun normalizeColorFormats(text: String): String {
+        var result = text
+        
+        // 1. Конвертируем названия цветов в HEX: {#white} → {#FFFFFF}
+        result = result.replace(Regex("\\{#([a-zA-Z]+)\\}")) { match ->
+            val name = match.groupValues[1].lowercase()
+            val hex = colorNames[name] ?: "FFFFFF"
+            debugLog("Converting color name '${match.groupValues[1]}' to #$hex")
+            "{#$hex}"
+        }
+        
+        // 2. Конвертируем §x§R§R§G§G§B§B в §#RRGGBB
+        result = result.replace(Regex("§x(§[0-9a-fA-F])(§[0-9a-fA-F])(§[0-9a-fA-F])(§[0-9a-fA-F])(§[0-9a-fA-F])(§[0-9a-fA-F])")) { match ->
+            val r = match.groupValues[1][1]
+            val g = match.groupValues[2][1]
+            val b = match.groupValues[3][1]
+            val gg = match.groupValues[4][1]
+            val bb = match.groupValues[5][1]
+            val b2 = match.groupValues[6][1]
+            val hex = "$r$g$b$gg$bb$b2"
+            debugLog("Converting §x format to §#$hex")
+            "§#$hex"
+        }
+        
+        // 3. Конвертируем &x&R&R&G&G&B&B в &#RRGGBB (альтернативный формат)
+        result = result.replace(Regex("&x(&[0-9a-fA-F])(&[0-9a-fA-F])(&[0-9a-fA-F])(&[0-9a-fA-F])(&[0-9a-fA-F])(&[0-9a-fA-F])")) { match ->
+            val r = match.groupValues[1][1]
+            val g = match.groupValues[2][1]
+            val b = match.groupValues[3][1]
+            val gg = match.groupValues[4][1]
+            val bb = match.groupValues[5][1]
+            val b2 = match.groupValues[6][1]
+            val hex = "$r$g$b$gg$bb$b2"
+            debugLog("Converting &x format to &#$hex")
+            "&#$hex"
+        }
+        
+        // 4. Конвертируем {#RRGGBB} (просто HEX без >) → &#RRGGBB
+        result = result.replace(Regex("\\{#([0-9a-fA-F]{6})\\}")) { match ->
+            val hex = match.groupValues[1]
+            debugLog("Converting {#$hex} to &#$hex")
+            "&#$hex"
+        }
+        
+        // 5. Конвертируем &{#RRGGBB} → &#RRGGBB
+        result = result.replace(Regex("&\\{#([0-9a-fA-F]{6})\\}")) { match ->
+            val hex = match.groupValues[1]
+            debugLog("Converting &{#$hex} to &#$hex")
+            "&#$hex"
+        }
+        
+        // 6. Конвертируем [#RRGGBB] (квадратные скобки) → &#RRGGBB
+        result = result.replace(Regex("\\[#([0-9a-fA-F]{6})\\]")) { match ->
+            val hex = match.groupValues[1]
+            debugLog("Converting [#$hex] to &#$hex")
+            "&#$hex"
+        }
+        
+        // 7. Конвертируем <#RRGGBB> (MiniMessage без color:) → &#RRGGBB
+        result = result.replace(Regex("<#([0-9a-fA-F]{6})>([^<]*)</[^>]*>")) { match ->
+            val hex = match.groupValues[1]
+            val content = match.groupValues[2]
+            debugLog("Converting <#$hex> to &#$hex")
+            "&#$hex$content"
+        }
+        
+        // 8. Конвертируем <c:#RRGGBB> и <color:#RRGGBB> → &#RRGGBB
+        result = result.replace(Regex("<(?:c|color):#([0-9a-fA-F]{6})>([^<]*)</(?:c|color)>")) { match ->
+            val hex = match.groupValues[1]
+            val content = match.groupValues[2]
+            debugLog("Converting <color:#$hex> to &#$hex")
+            "&#$hex$content"
+        }
+        
+        // 9. Конвертируем <g:#RRGGBB:#RRGGBB> (MiniMessage без gradient:) → <gradient:#RRGGBB:#RRGGBB>
+        result = result.replace(Regex("<g:#([0-9a-fA-F]{6}):#([0-9a-fA-F]{6})>([^<]*)</g>")) { match ->
+            val hex1 = match.groupValues[1]
+            val hex2 = match.groupValues[2]
+            val content = match.groupValues[3]
+            debugLog("Converting <g:#$hex1:#$hex2> to <gradient:#$hex1:#$hex2>")
+            "<gradient:#$hex1:#$hex2>$content</gradient>"
+        }
+        
+        return result
+    }
+
     private fun drawColoredString(g: Graphics2D, text: String, x: Int, y: Int, defaultColor: Color) {
         debugLog("Drawing colored string: '${text.take(50)}...' at x=$x, y=$y")
         
-        var cleanText = text.replace(Regex("§x(§[0-9a-fA-F]){6}"), "")
-        
-        // Конвертируем названия цветов в HEX {#white} → {#FFFFFF}
-        val colorNames = mapOf(
-            "white" to "FFFFFF", "black" to "000000", "red" to "FF0000",
-            "green" to "00FF00", "blue" to "0000FF", "yellow" to "FFFF00",
-            "aqua" to "00FFFF", "pink" to "FFC0CB", "gray" to "808080",
-            "grey" to "808080", "orange" to "FFA500", "purple" to "800080"
-        )
-        cleanText = cleanText.replace(Regex("\\{#([a-zA-Z]+)\\}")) { match ->
-            val name = match.groupValues[1].lowercase()
-            val hex = colorNames[name] ?: "FFFFFF"
-            "{#$hex}"
-        }
+        var cleanText = normalizeColorFormats(text)
         
         // CMI градиент {#RRGGBB>}текст{#RRGGBB<}
         val cmiGradientPattern = Regex("\\{#([0-9a-fA-F]{6})>\\}([^\\}]*)\\{#([0-9a-fA-F]{6})<\\}")
@@ -148,11 +228,6 @@ class ItemRenderer {
             debugLog("Converting CMI JSON gradient from #$firstColor to #$lastColor")
             val fullMatch = "\\[${cmiJsonMatches.joinToString(",") { Regex.escape(it.value) }}\\]"
             cleanText = cleanText.replace(Regex(fullMatch), replacement)
-        }
-        
-        // MiniMessage <color:#RRGGBB>текст</color>
-        cleanText = cleanText.replace(Regex("<color:#([0-9a-fA-F]{6})>([^<]*)</color>")) { match ->
-            "&#${match.groupValues[1]}${match.groupValues[2]}"
         }
         
         // MiniMessage <gradient:#RRGGBB:#RRGGBB>текст</gradient>
