@@ -101,6 +101,18 @@ class ItemRenderer {
     private fun drawColoredString(g: Graphics2D, text: String, x: Int, y: Int, defaultColor: Color) {
         var cleanText = text.replace(Regex("§x(§[0-9a-fA-F]){6}"), "")
         
+        // CMI градиент {#RRGGBB>}текст{#RRGGBB<}
+        val cmiGradientPattern = Regex("\\{#([0-9a-fA-F]{6})>\\}([^\\{]*)\\{#([0-9a-fA-F]{6})<\\}")
+        var cmiMatch = cmiGradientPattern.find(cleanText)
+        while (cmiMatch != null) {
+            val hex1 = cmiMatch.groupValues[1]
+            val hex2 = cmiMatch.groupValues[3]
+            val content = cmiMatch.groupValues[2]
+            val replacement = "<gradient:#$hex1:#$hex2>$content</gradient>"
+            cleanText = cleanText.replace(cmiMatch.value, replacement)
+            cmiMatch = cmiGradientPattern.find(cleanText)
+        }
+        
         // MiniMessage <color:#RRGGBB>текст</color>
         cleanText = cleanText.replace(Regex("<color:#([0-9a-fA-F]{6})>([^<]*)</color>")) { match ->
             "&#${match.groupValues[1]}${match.groupValues[2]}"
@@ -207,7 +219,9 @@ class ItemRenderer {
         val nameColor = determineNameColor(item)
         g.font = MinecraftFontLoader.getFont(16f)
         drawColoredString(g, fullName, margin, imageScale + margin + 30, nameColor)
-        return fullName.replace(Regex("[§&][0-9a-fk-orA-FK-OR]"), "")
+        return fullName
+            .replace(Regex("§x(§[0-9a-fA-F]){6}"), "")
+            .replace(Regex("[§&][0-9a-fk-orA-FK-OR]"), "")
     }
 
     private fun determineNameColor(item: ItemStack): Color {
