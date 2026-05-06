@@ -1,5 +1,6 @@
 package org.zoobastiks.ztelegram.renderer
 
+import java.awt.Font
 import org.bukkit.inventory.ItemStack
 import org.bukkit.inventory.meta.EnchantmentStorageMeta
 import javax.imageio.ImageIO
@@ -98,28 +99,44 @@ class ItemRenderer {
     }
 
     private fun drawColoredString(g: Graphics2D, text: String, x: Int, y: Int, defaultColor: Color) {
-        val cleanText = text
-        val parts = cleanText.split(Regex("(?=&[0-9a-fA-F#])|(?=§[0-9a-fA-F#])"))
+        val cleanText = text.replace(Regex("§x(§[0-9a-fA-F]){6}"), "")
+        val segments = cleanText.split(Regex("(?=&[0-9a-fA-Fk-oK-OrR#])|(?=§[0-9a-fA-Fk-oK-OrR#])"))
         
         var currentX = x
-        for (part in parts) {
+        var currentColor = defaultColor
+        var currentFont = g.font
+        
+        for (segment in segments) {
+            if (segment.isEmpty()) continue
+            
             when {
-                part.matches(Regex("^[§&]#[0-9a-fA-F]{6}.*")) -> {
-                    // HEX цвет
-                    val hex = part.substring(1, 8)  // §#RRGGBB
-                    g.color = Color.decode("0x${hex.substring(1)}")
-                    g.drawString(part.substring(8), currentX, y)
-                    currentX += g.fontMetrics.stringWidth(part.substring(8))
+                segment.startsWith("§") || segment.startsWith("&") -> {
+                    val code = segment[1].lowercaseChar()
+                    when (code) {
+                        'l' -> currentFont = currentFont.deriveFont(Font.BOLD)
+                        'o' -> currentFont = currentFont.deriveFont(Font.ITALIC)
+                        'n' -> currentFont = currentFont.deriveFont(Font.UNDERLINE)
+                        'm' -> currentFont = currentFont.deriveFont(Font.STRIKETHROUGH)
+                        'r' -> {
+                            currentFont = g.font
+                            currentColor = defaultColor
+                        }
+                        'k' -> {} // обфусцированный — не поддерживается
+                        else -> {
+                            currentColor = colorMap[code] ?: defaultColor
+                        }
+                    }
                 }
-                part.startsWith("§") && part.length >= 2 -> {
-                    g.color = colorMap[part[1].lowercaseChar()] ?: defaultColor
-                    g.drawString(part.substring(2), currentX, y)
-                    currentX += g.fontMetrics.stringWidth(part.substring(2))
+                segment.startsWith("#") && segment.length >= 7 -> {
+                    try {
+                        currentColor = Color.decode("0x${segment.substring(1, 7)}")
+                    } catch (e: Exception) {}
                 }
                 else -> {
-                    g.color = defaultColor
-                    g.drawString(part, currentX, y)
-                    currentX += g.fontMetrics.stringWidth(part)
+                    g.color = currentColor
+                    g.font = currentFont
+                    g.drawString(segment, currentX, y)
+                    currentX += g.fontMetrics.stringWidth(segment)
                 }
             }
         }
