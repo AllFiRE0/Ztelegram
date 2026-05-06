@@ -325,6 +325,11 @@ chat:
         enabled: true
         type: "actionbar"
         message: "<gradient:#FFD700:#FFA500>%username% отвечает на ваше сообщение</gradient>"
+  # Замены
+  replacements:
+    minecraft-to-telegram: "text-replacements.yml"
+    telegram-to-minecraft: "text-replacements.yml"
+  # Ивенты
   player-events:
     # Вход на сервер
     join:
