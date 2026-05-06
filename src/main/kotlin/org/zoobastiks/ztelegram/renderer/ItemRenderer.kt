@@ -170,8 +170,8 @@ class ItemRenderer {
                     when (code) {
                         'l' -> currentFont = currentFont.deriveFont(Font.BOLD)
                         'o' -> currentFont = currentFont.deriveFont(Font.ITALIC)
-                        'n' -> currentFont = currentFont.deriveFont(Font.UNDERLINE)
-                        'm' -> currentFont = currentFont.deriveFont(Font.STRIKETHROUGH)
+                        'n' -> {} // подчёркнутый не поддерживается
+                        'm' -> {} // зачёркнутый не поддерживается
                         'r' -> {
                             currentFont = baseFont
                             currentColor = defaultColor
