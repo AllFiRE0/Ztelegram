@@ -159,17 +159,17 @@ class ItemRenderer {
             val beforeSegments = before.split(Regex("(?=&[0-9a-fA-Fk-oK-OrR#])|(?=§[0-9a-fA-Fk-oK-OrR#])"))
             var beforeX = drawSegments(g, beforeSegments, x, y, defaultColor, g.font)
             
-            val chars = content.toCharArray()
-            for ((index, char) in chars.withIndex()) {
-                val ratio = if (chars.size > 1) index.toFloat() / (chars.size - 1) else 0f
-                val r = (c1.red + (c2.red - c1.red) * ratio).toInt().coerceIn(0, 255)
-                val gr = (c1.green + (c2.green - c1.green) * ratio).toInt().coerceIn(0, 255)
-                val b = (c1.blue + (c2.blue - c1.blue) * ratio).toInt().coerceIn(0, 255)
-                g.color = Color(r, gr, b)
-                g.font = currentFont
-                g.drawString(char.toString(), beforeX, y)
-                beforeX += g.fontMetrics.stringWidth(char.toString())
-            }
+            val textWidth = g.fontMetrics.stringWidth(content)
+            val gradientPaint = java.awt.GradientPaint(
+                beforeX.toFloat(), 0f, c1,
+                (beforeX + textWidth).toFloat(), 0f, c2
+            )
+            val oldPaint = g.paint
+            g.paint = gradientPaint
+            g.font = currentFont
+            g.drawString(content, beforeX, y)
+            g.paint = oldPaint
+            beforeX += textWidth
             
             cleanText = after
             matchResult = gradientPattern.find(cleanText)
