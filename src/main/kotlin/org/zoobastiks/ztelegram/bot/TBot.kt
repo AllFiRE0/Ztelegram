@@ -448,7 +448,10 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             message.contains("Connection refused", true) -> "CONNECTION_REFUSED"
 
             e is SocketTimeoutException || message.contains("SocketTimeoutException", true) ||
-            message.contains("timed out", true) -> "TIMEOUT"
+            message.contains("timed out", true) -> {
+                reconnectionManager.resetCounters()
+                "TIMEOUT"
+            }
 
             e is NoRouteToHostException || message.contains("NoRouteToHostException", true) ||
             message.contains("No route to host", true) -> "ROUTING"
