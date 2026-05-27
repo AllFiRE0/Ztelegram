@@ -1861,6 +1861,8 @@ scheduler:
       commands:
         - "baltop"
         - "broadcast &a[СИСТЕМА] &fТоп балансов обновлен!"
+        - "tgsend bc global plain Всем привет!"
+        - "tgsend bcs -1001234567890 mm <gradient:#FF0000:#00FF00>Важное объявление</gradient>"
       # 🔄 Включить эту задачу
       enabled: true
 
