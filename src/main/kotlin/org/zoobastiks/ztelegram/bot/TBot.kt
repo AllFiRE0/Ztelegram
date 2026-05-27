@@ -999,10 +999,10 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
      */
     private fun isCommandAllowedInChannel(command: String, channelType: String): Boolean {
         return when (channelType) {
-            "main" -> command in listOf("online", "tps", "restart", "cancelrestart", "stats", "top", "topbal", "player", "gender", "rep", "reptop", "reprecent", "random", "menu", "help", "помощь", "pay", "перевод", "платеж", "checkin")
+            "main" -> command in listOf("online", "tps", "restart", "cancelrestart", "stats", "top", "topbal", "player", "gender", "rep", "reptop", "reprecent", "random", "menu", "help", "помощь", "pay", "перевод", "платеж", "topcheck", "checkin")
             "register" -> command in listOf("unreg", "отменить", "list", "список", "help", "помощь", "checkin")
             "game" -> command in listOf("game", "игра", "help", "помощь")
-            "statistics" -> command in listOf("admin", "stats", "статистика", "top", "топ", "topbal", "топбал", "help", "помощь")
+            "statistics" -> command in listOf("admin", "stats", "статистика", "top", "топ", "topbal", "топбал", "help", "помощь", "topcheck", "топчек", "балтоп", "рептоп", "reptop", "toprep")
             "console" -> true
             else -> true
         }
@@ -1706,26 +1706,27 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
         // Создаем карту команд и их псевдонимов
         val commandAliases = mapOf(
-            "checkin" to setOf("/checkin"),
-            "list" to setOf("/list", "/список"),
+            "checkin" to setOf("/checkin", "/отметится", "/отметка", "/чек"),
+            "list" to setOf("/list", "/список", "/лист"),
             "menu" to setOf("/menu", "/меню"),
             "online" to setOf("/online", "/онлайн"),
-            "tps" to setOf("/tps", "/тпс"),
+            "tps" to setOf("/tps", "/тпс", "/производительность"),
             "gender" to setOf("/gender", "/пол"),
             "player" to setOf("/player", "/ник", "/игрок", "/профиль", "/profile"),
-            "help" to setOf("/help", "/помощь"),
+            "help" to setOf("/help", "/помощь", "/справка"),
             "unreg" to setOf("/unreg", "/отменить"),
-            "game" to setOf("/game", "/игра"),
-            "stats" to setOf("/stats", "/статистика"),
-            "top" to setOf("/top", "/топ"),
-            "topbal" to setOf("/topbal", "/топбал"),
-            "rep" to setOf("/rep", "/репутация"),
-            "reptop" to setOf("/reptop", "/топрепутация"),
+            "game" to setOf("/game", "/игра", "/играть"),
+            "stats" to setOf("/stats", "/статистика", "/стат"),
+            "top" to setOf("/top", "/топ", "/топы", "/лучшие"),
+            "topcheck" to setOf("/topcheck", "/топотметки", "/топчекин", "/checkintop", "/topcheckin", "/чектоп"),
+            "topbal" to setOf("/topbal", "/балтоп"),
+            "rep" to setOf("/rep", "/репутация", "/реп", "/reputation"),
+            "reptop" to setOf("/reptop", "/рептоп"),
             "reprecent" to setOf("/reprecent", "/репизменения"),
-            "random" to setOf("/random", "/рулетка", "/рандом"),
-            "pay" to setOf("/pay", "/перевод", "/платеж"),
-            "restart" to setOf("/restart", "/рестарт"),
-            "cancelrestart" to setOf("/cancelrestart", "/отменитьрестарт"),
+            "random" to setOf("/random", "/рулетка", "/рандом", "/розыгрыш"),
+            "pay" to setOf("/pay", "/перевод", "/платеж", "/платежи", "/payment", "/payments"),
+            "restart" to setOf("/restart", "/рестарт", "/перезагрузка"),
+            "cancelrestart" to setOf("/cancelrestart", "/restartcancel", "/отменитьрестарт"),
             "admin" to setOf("/admin", "/админ"),
             "checkinreset" to setOf("/checkinreset", "/сбросчекина", "/сбросотметок")
         )
@@ -2298,6 +2299,52 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                     plugin.logger.severe("Error processing /topbal command: ${e.message}")
                     sendAutoDeleteMessage(getResponseChatId(currentChatId), conf.topBalError, conf.commandsAutoDeleteSeconds)
                 }
+            }
+
+            "topcheck" -> {
+                if (!conf.checkinTopEnabled) {
+                    sendAutoDeleteMessage(getResponseChatId(currentChatId), "Топ по отметкам отключен", conf.commandsAutoDeleteSeconds)
+                    return
+                }
+                Bukkit.getScheduler().runTaskAsynchronously(plugin, Runnable {
+                    val connection = ZTele.checkinManager.getConnection()
+                    val topCheckin = mutableListOf<Pair<String, Int>>()
+                    
+                    connection?.prepareStatement(
+                        "SELECT player_name, points FROM checkins ORDER BY points DESC LIMIT 10"
+                    )?.use { stmt ->
+                        stmt.executeQuery()?.use { rs ->
+                            while (rs.next()) {
+                                val name = rs.getString("player_name")
+                                val points = rs.getInt("points")
+                                val originalName = ZTele.mgr.getOriginalPlayerName(name)
+                                val displayName = originalName ?: name
+                                topCheckin.add(displayName to points)
+                            }
+                        }
+                    }
+                    
+                    val message = if (topCheckin.isEmpty()) {
+                        conf.checkinTopNoData
+                    } else {
+                        var result = conf.checkinTopMessage
+                        result = result.replace("%currency%", ZTele.conf.checkinCurrencyName)
+                        topCheckin.forEachIndexed { index, (playerName, points) ->
+                            val pos = index + 1
+                            result = result.replace("%player_$pos%", playerName)
+                            result = result.replace("%points_$pos%", points.toString())
+                        }
+                        for (i in (topCheckin.size + 1)..10) {
+                            result = result.replace("%player_$i%", "—")
+                            result = result.replace("%points_$i%", "—")
+                        }
+                        result
+                    }
+                    
+                    Bukkit.getScheduler().runTask(plugin, Runnable {
+                        sendAutoDeleteMessage(getResponseChatId(currentChatId), message, conf.commandsAutoDeleteSeconds)
+                    })
+                })
             }
 
             "game" -> {
