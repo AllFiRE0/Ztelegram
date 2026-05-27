@@ -464,10 +464,10 @@ class ZTele : JavaPlugin() {
         }
 
         // Регистрируем команду tgsend
-        val sendCmd = getCommand("tgsend")
-        if (sendCmd != null) {
-            sendCmd.setExecutor(SendCommand(this))
-        }
+		val tgSendCmd = getCommand("tgsend")
+		if (tgSendCmd != null) {
+		    tgSendCmd.setExecutor(TgSendCommand(this))
+		}
 
         // Регистрируем команду checkin
         val checkinCmd = getCommand("checkin")
