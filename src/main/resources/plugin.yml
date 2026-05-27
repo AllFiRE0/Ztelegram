@@ -23,6 +23,12 @@ commands:
       §e/telegram hidden §7- List all hidden players
     aliases: [tg]
     permission: ztelegram.command.use
+
+  tgsend:
+    description: "Отправить сообщение в Telegram"
+    usage: "/tgsend <bc|bcs> <чат> <format> <сообщение>"
+    aliases: [tg, ts, tsend]
+    permission: ztelegram.send
   
   rep:
     description: Reputation system command
@@ -36,12 +42,6 @@ commands:
       §e/rep reset <player> §7- Reset player reputation (admin only)
     aliases: [reputation, репутация]
     permission: ztelegram.reputation.use
-
-  tgsend:
-    description: "Отправить сообщение в Telegram"
-    usage: "/tgsend <format> <chat_name> <message>"
-    aliases: [ts, tsend]
-    permission: ztelegram.send
 
   checkin:
     description: "Отметиться и получить очки актива"
