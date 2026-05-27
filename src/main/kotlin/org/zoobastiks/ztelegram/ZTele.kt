@@ -3,6 +3,7 @@ package org.zoobastiks.ztelegram
 import org.bukkit.Bukkit
 import java.io.File
 import org.zoobastiks.ztelegram.chat.ChattyListener
+import org.zoobastiks.ztelegram.commands.TgSendCommand
 import org.zoobastiks.ztelegram.chat.ChatManager
 import org.zoobastiks.ztelegram.checkin.CheckinManager
 import org.zoobastiks.ztelegram.checkin.CheckinCommand
