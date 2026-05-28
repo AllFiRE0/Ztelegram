@@ -214,6 +214,7 @@ class TConf(private val plugin: ZTele) {
     var chatTelegramToMinecraftEnabled: Boolean = true
     var chatTelegramToMinecraftFormat: String = "〔Телеграм〕%username%: %message%"
     var chatPlayerChatEnabled: Boolean = true
+    var strictChannelMatching: Boolean = false
     var chatReplyEnabled: Boolean = true
     var chatReplyMaxLength: Int = 60
     var chatReplyFormat: String = "<aqua>↪</aqua> <#a1d1e6>[Telegram] %username%</#a1d1e6> <gray>→ %target%(%message%)</gray> <dark_gray>›</dark_gray> <gray>%reply_message%</gray>"
@@ -472,7 +473,7 @@ class TConf(private val plugin: ZTele) {
         "online" to "Онлайн",
         "offline" to "Оффлайн",
         "not_set" to "Не указано",
-        "not_registered" to "Не зарегистрирован",
+        "not_registered" to "Нет регистрации",
         "never" to "Никогда",
         "offline_coords" to "Недоступно"
     )
@@ -495,7 +496,7 @@ class TConf(private val plugin: ZTele) {
     var gameMaxBonus: Int = 10
     var gameRewardCommands: List<String> = listOf(
         "eco give %player% %reward%",
-        "broadcast 🎉 %player% выиграл в игру \"Угадай слово\" и получил %reward% монет!"
+        "broadcast 🎉 %player% выигрывает в игру \"Угадай слово\" и получает %reward% монет!"
     )
 
     // Game messages
@@ -1644,6 +1645,7 @@ class TConf(private val plugin: ZTele) {
         chatPlayerDeathMessage = conf.getString("chat.player-events.death.message", chatPlayerDeathMessage) ?: chatPlayerDeathMessage
         chatPlayerDeathUseRussianMessages = conf.getBoolean("chat.player-events.death.use-russian-messages", chatPlayerDeathUseRussianMessages)
         chatPlayerDeathDebugMessages = conf.getBoolean("chat.player-events.death.debug-messages", chatPlayerDeathDebugMessages)
+        strictChannelMatching = conf.getBoolean("chat.strict-channel-matching", false)
 
 
         // Белый и черный списки
