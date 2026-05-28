@@ -308,6 +308,7 @@ chat:
     enabled: true
     # Формат сообщения: %player% - ник игрока, %message% - текст
     format: "`%player%` › %message%"
+  strict-channel-matching: true
 
   # 🔄 Пересылка сообщений Telegram → Minecraft
   telegram-to-minecraft:
