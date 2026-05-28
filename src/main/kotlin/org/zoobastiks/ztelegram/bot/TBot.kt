@@ -1185,23 +1185,9 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
                             plugin.logger.info("🎯 Routing to MAIN channel handler (BASE match)")
                         }
                         handleMainChannelMessage(text, username, userId, replyToMessage)
-                    }
                     else -> {
-                        // Проверяем, совпадает ли базовый ID с основным каналом
-                        val actualBaseId = if (actualChatId.contains("_")) actualChatId.substringBefore("_") else actualChatId
-                        val mainBaseId = if (conf.mainChannelId.contains("_")) conf.mainChannelId.substringBefore("_") else conf.mainChannelId
-
-                        if (actualBaseId == mainBaseId) {
-                            // Сообщение из другой темы того же канала - обрабатываем как основной канал
-                            if (conf.debugEnabled) {
-                                plugin.logger.info("🎯 Routing to MAIN channel handler (same base channel, different topic)")
-                            }
-                            handleMainChannelMessage(text, username, userId, replyToMessage)
-                        } else if (conf.debugEnabled) {
-                            plugin.logger.info("❓ No handler found for chatId: $actualChatId")
-                            plugin.logger.info("   Main: '${conf.mainChannelId}'")
-                            plugin.logger.info("   Console: '${conf.consoleChannelId}'")
-                            plugin.logger.info("   Register: '${conf.registerChannelId}'")
+                        if (conf.debugEnabled) {
+                            plugin.logger.info("❓ Обработчик не найден для chatId: $actualChatId")
                         }
                     }
                 }
