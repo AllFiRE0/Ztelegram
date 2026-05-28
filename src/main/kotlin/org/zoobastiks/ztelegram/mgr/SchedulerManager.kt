@@ -192,7 +192,7 @@ class SchedulerManager(private val plugin: ZTele) {
                      "⏰ Сервер будет перезагружен через **$delayMinutes минут**\n" +
                      "👤 Инициатор: $initiator"
         
-        ZTele.bot.sendMessageToConsole(message)
+        ZTele.bot.sendAutoDeleteMessage(ZTele.conf.mainChannelId, message, 0)
         
         val delayTicks = delayMinutes * 60 * 20L
         
