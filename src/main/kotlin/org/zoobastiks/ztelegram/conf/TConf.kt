@@ -1339,6 +1339,21 @@ class TConf(private val plugin: ZTele) {
         checkinMessageIngameCooldown = conf.getString("checkin.messages.ingame_cooldown", "") ?: ""
         checkinMessageIngameInfo = conf.getString("checkin.messages.ingame_info", "") ?: ""
         checkinRequireRegistration = conf.getBoolean("checkin.require_registration", true)
+        // ========== ЗАГРУЗКА НАСТРОЕК ТОПОВ ==========
+        // 1. Команда /top (время игры)
+        topCommandUsage = conf.getString("commands.top.usage", topCommandUsage) ?: topCommandUsage
+        topNoData = conf.getString("commands.top.no-data", topNoData) ?: topNoData
+        topMessage = conf.getString("commands.top.message", topMessage) ?: topMessage
+        // 2. Команда /topbal (баланс)
+        topBalMessage = conf.getString("commands.topbal.message", topBalMessage) ?: topBalMessage
+        topBalNoData = conf.getString("commands.topbal.no-data", topBalNoData) ?: topBalNoData
+        topBalError = conf.getString("commands.topbal.error", topBalError) ?: topBalError
+        // 3. Топ по чек-ину
+        checkinTopEnabled = conf.getBoolean("commands.checkintop.enabled", checkinTopEnabled)
+        checkinTopNoData = conf.getString("commands.checkintop.no-data", checkinTopNoData) ?: checkinTopNoData
+        checkinTopMessage = conf.getString("commands.checkintop.message", checkinTopMessage) ?: checkinTopMessage
+        // 4. Название валюты чек-ина (используется в топе)
+        checkinCurrencyName = conf.getString("checkin.currency_name", checkinCurrencyName) ?: checkinCurrencyName
         
         sendCommandEnabled = conf.getBoolean("commands.send.enabled", true)
         sendCommandPermission = conf.getString("commands.send.permission", "ztelegram.send") ?: "ztelegram.send"
