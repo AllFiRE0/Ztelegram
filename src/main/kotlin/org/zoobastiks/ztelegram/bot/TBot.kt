@@ -835,6 +835,9 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
     /**
      * Проверяет соответствие chatId конфигурированному каналу
      * Поддерживает как обычные каналы (-1001706591095), так и темы (-1001706591095_378632)
+     * 
+     * ВАЖНО: Сообщение из темы НЕ БУДЕТ сопоставлено с каналом, у которого не указана тема.
+     * Это предотвращает попадание сообщений из непривязанных тем в игру.
      */
     private fun isChannelMatch(actualChatId: String, configuredChannelId: String): Boolean {
         // Если канал не настроен (пустая строка), возвращаем false
@@ -847,7 +850,7 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
 
         // Добавляем отладочную информацию
         if (conf.debugEnabled) {
-            plugin.logger.info("Checking channel match: actualChatId='$actualChatId', configuredChannelId='$configuredChannelId'")
+            plugin.logger.info("🔍 isChannelMatch: actual='$actualChatId', configured='$configuredChannelId'")
         }
 
         // Точное совпадение (приоритет)
@@ -858,16 +861,36 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             return true
         }
 
-        // Получаем базовые ID каналов (до символа "_")
-        val actualBaseId = if (actualChatId.contains("_")) actualChatId.substringBefore("_") else actualChatId
+        val actualHasTopic = actualChatId.contains("_")
+        val configuredHasTopic = configuredChannelId.contains("_")
+        
+        val actualBaseId = if (actualHasTopic) actualChatId.substringBefore("_") else actualChatId
+        val configuredBaseId = if (configuredHasTopic) configuredChannelId.substringBefore("_") else configuredChannelId
 
-        // Если конфигурированный канал НЕ содержит тему (только базовый ID),
-        // то сопоставляем с базовым ID входящего сообщения
-        if (!configuredChannelId.contains("_") && actualBaseId == configuredChannelId) {
+        // ⚠️ КЛЮЧЕВОЕ ИСПРАВЛЕНИЕ:
+        // Если сообщение из темы, а канал в конфиге указан без темы — НЕ МАТЧИМ!
+        // Это предотвращает попадание сообщений из непривязанных тем
+        if (actualHasTopic && !configuredHasTopic) {
             if (conf.debugEnabled) {
-                plugin.logger.info("✅ BASE MATCH: actualBase='$actualBaseId' == configured='$configuredChannelId' (no topic in config)")
+                plugin.logger.info("❌ NO MATCH: message from topic ($actualChatId), but configured channel has no topic ($configuredChannelId)")
+            }
+            return false
+        }
+
+        // Если оба без тем — сравниваем базовые ID
+        if (!actualHasTopic && !configuredHasTopic && actualBaseId == configuredBaseId) {
+            if (conf.debugEnabled) {
+                plugin.logger.info("✅ BASE MATCH: both no topic (actualBase='$actualBaseId' == configured='$configuredChannelId')")
             }
             return true
+        }
+
+        // Если у обоих есть темы, но не точное совпадение — не матчим
+        if (actualHasTopic && configuredHasTopic && actualBaseId == configuredBaseId) {
+            if (conf.debugEnabled) {
+                plugin.logger.info("❌ NO MATCH: different topics (base ID matches but topics differ: '${actualChatId.substringAfter("_")}' vs '${configuredChannelId.substringAfter("_")}')")
+            }
+            return false
         }
 
         if (conf.debugEnabled) {
@@ -1069,6 +1092,20 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             val userId = message.from.id
 
             val replyToMessage = if (message.isReply) message.replyToMessage else null
+            
+            // ========== РАСШИРЕННОЕ ЛОГИРОВАНИЕ РЕПЛАЕВ ==========
+            if (replyToMessage != null && conf.debugEnabled) {
+                plugin.logger.info("📌 [REPLY DEBUG] ===================================")
+                plugin.logger.info("📌 [REPLY DEBUG] Ответ пользователя: $username (ID: $userId)")
+                plugin.logger.info("📌 [REPLY DEBUG] Текст ответа: '$text'")
+                plugin.logger.info("📌 [REPLY DEBUG] На сообщение от: ${replyToMessage.from.userName ?: replyToMessage.from.firstName} (ID: ${replyToMessage.from.id})")
+                plugin.logger.info("📌 [REPLY DEBUG] Текст исходного сообщения: '${replyToMessage.text ?: "[не текст]"}'")
+                plugin.logger.info("📌 [REPLY DEBUG] ID исходного сообщения: ${replyToMessage.messageId}")
+                plugin.logger.info("📌 [REPLY DEBUG] Чат исходного сообщения: ${replyToMessage.chatId}")
+                plugin.logger.info("📌 [REPLY DEBUG] ===================================")
+            }
+            // ========== КОНЕЦ ЛОГИРОВАНИЯ ==========
+            
             // Удаляем сообщение с командой по таймеру
             if (text.startsWith("/")) {
                 val messageIdToDelete = message.messageId
