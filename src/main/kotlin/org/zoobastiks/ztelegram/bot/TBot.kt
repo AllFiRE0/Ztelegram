@@ -1123,6 +1123,14 @@ class TBot(private val plugin: ZTele) : TelegramLongPollingBot(plugin.config.get
             // Сохраняем текущий actualChatId в контексте для ответов в ту же тему
             currentChatIdContext.set(actualChatId)
 
+            // ========== НОВАЯ ПРОВЕРКА: Разрешён ли этот чат ==========
+            if (!isChatAllowed(actualChatId)) {
+                if (conf.debugEnabled) {
+                    plugin.logger.info("🚫 [TGChatFilter] Игнорируем сообщение из неподдерживаемого чата: $actualChatId")
+                }
+                return
+            }
+
             try {
                 // Обработка сообщений с поддержкой тем Telegram
                 // ВАЖНО: Порядок проверок имеет значение! Сначала проверяем точные совпадения с темами
@@ -5524,5 +5532,42 @@ $topList
                 plugin.logger.warning("Error answering callback query: ${e.message}")
             }
         }
+    }
+
+     /**
+     * Проверяет, разрешён ли данный chatId для обработки сообщений
+     */
+    private fun isChatAllowed(chatId: String): Boolean {
+        // 1. Проверка основных каналов из конфига
+        val mainChannels = listOf(
+            conf.mainChannelId,
+            conf.consoleChannelId,
+            conf.registerChannelId,
+            conf.gameChannelId,
+            conf.statisticsChannelId
+        ).filter { it.isNotEmpty() }
+        
+        if (mainChannels.any { isChannelMatch(chatId, it) }) {
+            if (conf.debugEnabled) {
+                plugin.logger.info("✅ [ChatFilter] Чат $chatId разрешён (основной канал)")
+            }
+            return true
+        }
+        
+        // 2. Проверка game_chats (мультичат)
+        val (baseChatId, topicId) = parseChatId(chatId)
+        val gameChat = ZTele.chatManager.getChats().find { 
+            it.chatId.toString() == baseChatId && it.topicId == (topicId ?: 0)
+        }
+        
+        val isAllowed = gameChat != null && gameChat.enabled
+        if (conf.debugEnabled) {
+            if (isAllowed) {
+                plugin.logger.info("✅ [TGChatFilter] Чат $chatId разрешён (game_chat: ${gameChat?.name})")
+            } else {
+                plugin.logger.info("❌ [TGChatFilter] Чат $chatId НЕ разрешён")
+            }
+        }
+        return isAllowed
     }
 }
